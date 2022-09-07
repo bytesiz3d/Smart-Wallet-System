@@ -147,7 +147,7 @@ namespace sws
 				if (req == nullptr)
 					break;
 
-				auto res = client.log.execute_new_command(this, req->command());
+				auto res = client.log.execute_new_command(this, req->command(id));
 				client.session.send_response(std::move(res));
 			}
 		}

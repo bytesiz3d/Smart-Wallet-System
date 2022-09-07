@@ -21,7 +21,7 @@ namespace sws
 
 	public:
 		Request_Deposit(); // uses deserialize for initialization
-		Request_Deposit(id_t _client_id, Transaction _deposit);
+		Request_Deposit(Transaction _deposit);
 
 		Json
 		serialize() override;
@@ -30,14 +30,14 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command() override;
+		command(id_t client_id) override;
 	};
 
 	class Response_Deposit : public IResponse
 	{
 	public:
 		Response_Deposit(); // uses deserialize
-		Response_Deposit(id_t _client_id, Error _error);
+		Response_Deposit(Error _error);
 	};
 
 	class Command_Deposit : public ICommand
@@ -65,7 +65,7 @@ namespace sws
 
 	public:
 		Request_Withdrawal(); // uses deserialize
-		Request_Withdrawal(id_t _client_id, Transaction _withdrawal);
+		Request_Withdrawal(Transaction _withdrawal);
 
 		Json
 		serialize() override;
@@ -74,14 +74,14 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command() override;
+		command(id_t client_id) override;
 	};
 
 	class Response_Withdrawal : public IResponse
 	{
 	public:
 		Response_Withdrawal(); // uses deserialize
-		Response_Withdrawal(id_t _client_id, Error _error);
+		Response_Withdrawal(Error _error);
 	};
 
 	class Command_Withdrawal : public ICommand
@@ -106,10 +106,10 @@ namespace sws
 	class Request_Query_Balance : public IRequest
 	{
 	public:
-		explicit Request_Query_Balance(id_t _client_id);
+		explicit Request_Query_Balance();
 
 		std::unique_ptr<ICommand>
-		command() override;
+		command(id_t client_id) override;
 	};
 
 	class Response_Query_Balance : public IResponse
@@ -117,7 +117,7 @@ namespace sws
 		uint64_t balance;
 
 	public:
-		Response_Query_Balance(id_t _client_id, Error _error, uint64_t _balance);
+		Response_Query_Balance(Error _error, uint64_t _balance);
 
 		Json
 		serialize() override;

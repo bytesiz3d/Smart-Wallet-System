@@ -14,12 +14,12 @@ namespace sws
 	}
 
 	Request_Deposit::Request_Deposit()
-		: IRequest{IRequest::KIND_DEPOSIT, {}}, deposit{}
+		: IRequest{IRequest::KIND_DEPOSIT}, deposit{}
 	{
 	}
 
-	Request_Deposit::Request_Deposit(id_t _client_id, Transaction _deposit)
-		: IRequest{IRequest::KIND_DEPOSIT, _client_id}, deposit{_deposit}
+	Request_Deposit::Request_Deposit(Transaction _deposit)
+		: IRequest{IRequest::KIND_DEPOSIT}, deposit{_deposit}
 	{
 	}
 
@@ -40,18 +40,18 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Deposit::command()
+	Request_Deposit::command(id_t client_id)
 	{
 		return std::make_unique<Command_Deposit>(client_id, deposit);
 	}
 
 	Response_Deposit::Response_Deposit()
-		: IResponse{IRequest::KIND_DEPOSIT, {}, {}}
+		: IResponse{IRequest::KIND_DEPOSIT, {}}
 	{
 	}
 
-	Response_Deposit::Response_Deposit(id_t _client_id, Error _error)
-		: IResponse{IRequest::KIND_DEPOSIT, _client_id, std::move(_error)}
+	Response_Deposit::Response_Deposit(Error _error)
+		: IResponse{IRequest::KIND_DEPOSIT, std::move(_error)}
 	{
 	}
 
@@ -64,10 +64,10 @@ namespace sws
 	Command_Deposit::execute(Server *server)
 	{
 		if (auto err = deposit.is_valid())
-			return std::make_unique<Response_Deposit>(client_id, err);
+			return std::make_unique<Response_Deposit>(err);
 
 		auto err = server->withdraw(client_id, deposit.amount);
-		return std::make_unique<Response_Deposit>(client_id, err);
+		return std::make_unique<Response_Deposit>(err);
 	}
 
 	void
@@ -91,12 +91,12 @@ namespace sws
 	}
 
 	Request_Withdrawal::Request_Withdrawal()
-		: IRequest{IRequest::KIND_WITHDRAWAL, {}}, withdrawal{0}
+		: IRequest{IRequest::KIND_WITHDRAWAL}, withdrawal{0}
 	{
 	}
 
-	Request_Withdrawal::Request_Withdrawal(id_t _client_id, Transaction _withdrawal)
-		: IRequest{IRequest::KIND_WITHDRAWAL, _client_id}, withdrawal{_withdrawal}
+	Request_Withdrawal::Request_Withdrawal(Transaction _withdrawal)
+		: IRequest{IRequest::KIND_WITHDRAWAL}, withdrawal{_withdrawal}
 	{
 	}
 
@@ -117,18 +117,18 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Withdrawal::command()
+	Request_Withdrawal::command(id_t client_id)
 	{
 		return std::make_unique<Command_Withdrawal>(client_id, withdrawal);
 	}
 
 	Response_Withdrawal::Response_Withdrawal()
-		: IResponse{IRequest::KIND_WITHDRAWAL, {}, {}}
+		: IResponse{IRequest::KIND_WITHDRAWAL, {}}
 	{
 	}
 
-	Response_Withdrawal::Response_Withdrawal(id_t _client_id, Error _error)
-		: IResponse{IRequest::KIND_WITHDRAWAL, _client_id, std::move(_error)}
+	Response_Withdrawal::Response_Withdrawal(Error _error)
+		: IResponse{IRequest::KIND_WITHDRAWAL, std::move(_error)}
 	{
 	}
 
@@ -141,10 +141,10 @@ namespace sws
 	Command_Withdrawal::execute(Server *server)
 	{
 		if (auto err = withdrawal.is_valid())
-			return std::make_unique<Response_Withdrawal>(client_id, err);
+			return std::make_unique<Response_Withdrawal>(err);
 
 		auto err = server->withdraw(client_id, withdrawal.amount);
-		return std::make_unique<Response_Withdrawal>(client_id, err);
+		return std::make_unique<Response_Withdrawal>(err);
 	}
 
 	void
@@ -167,19 +167,19 @@ namespace sws
 		return fmt::format("Withdrawal {}", withdrawal.amount);
 	}
 
-	Request_Query_Balance::Request_Query_Balance(id_t _client_id)
-		: IRequest{KIND_QUERY_BALANCE, _client_id}
+	Request_Query_Balance::Request_Query_Balance()
+		: IRequest{KIND_QUERY_BALANCE}
 	{
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Query_Balance::command()
+	Request_Query_Balance::command(id_t client_id)
 	{
 		return std::make_unique<Command_Query_Balance>(client_id);
 	}
 
-	Response_Query_Balance::Response_Query_Balance(id_t _client_id, Error _error, uint64_t _balance)
-		: IResponse{KIND_QUERY_BALANCE, _client_id, std::move(_error)}, balance{_balance}
+	Response_Query_Balance::Response_Query_Balance(Error _error, uint64_t _balance)
+		: IResponse{KIND_QUERY_BALANCE, std::move(_error)}, balance{_balance}
 	{
 	}
 
@@ -208,7 +208,7 @@ namespace sws
 	Command_Query_Balance::execute(Server *server)
 	{
 		auto [balance, err] = server->query_balance(client_id);
-		return std::make_unique<Response_Query_Balance>(client_id, err, balance);
+		return std::make_unique<Response_Query_Balance>(err, balance);
 	}
 
 	void

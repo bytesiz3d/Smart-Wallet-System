@@ -25,7 +25,7 @@ namespace sws
 
 	public:
 		Request_Update_Info(); // uses deserialize for initialization
-		Request_Update_Info(id_t _client_id, Client_Info _client_info);
+		Request_Update_Info(Client_Info _client_info);
 
 		Json
 		serialize() override;
@@ -34,14 +34,14 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command() override;
+		command(id_t client_id) override;
 	};
 
 	class Response_Update_Info : public IResponse
 	{
 	public:
 		Response_Update_Info(); // uses deserialize
-		Response_Update_Info(id_t _client_id, Error _error);
+		Response_Update_Info(Error _error);
 	};
 
 	class Server;

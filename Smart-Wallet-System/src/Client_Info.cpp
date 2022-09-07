@@ -23,12 +23,12 @@ namespace sws
 	}
 
 	Request_Update_Info::Request_Update_Info()
-		: IRequest{KIND_UPDATE_INFO, {}}
+		: IRequest{KIND_UPDATE_INFO}
 	{
 	}
 
-	Request_Update_Info::Request_Update_Info(id_t _client_id, Client_Info _client_info)
-		: IRequest{KIND_UPDATE_INFO, _client_id}, client_info{std::move(_client_info)}
+	Request_Update_Info::Request_Update_Info(Client_Info _client_info)
+		: IRequest{KIND_UPDATE_INFO}, client_info{std::move(_client_info)}
 	{
 	}
 
@@ -56,18 +56,18 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Update_Info::command()
+	Request_Update_Info::command(id_t client_id)
 	{
 		return std::make_unique<Command_Update_Info>(client_id, client_info);
 	}
 
 	Response_Update_Info::Response_Update_Info()
-		: IResponse{KIND_UPDATE_INFO, {}, {}}
+		: IResponse{KIND_UPDATE_INFO, {}}
 	{
 	}
 
-	Response_Update_Info::Response_Update_Info(id_t _client_id, Error _error)
-		: IResponse{KIND_UPDATE_INFO, _client_id, std::move(_error)}
+	Response_Update_Info::Response_Update_Info(Error _error)
+		: IResponse{KIND_UPDATE_INFO, std::move(_error)}
 	{
 	}
 
@@ -83,7 +83,7 @@ namespace sws
 		if (err == false)
 			old_info = old;
 
-		return std::make_unique<Response_Update_Info>(client_id, err);
+		return std::make_unique<Response_Update_Info>(err);
 	}
 
 	void

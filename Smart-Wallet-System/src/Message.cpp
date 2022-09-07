@@ -4,7 +4,7 @@
 
 namespace sws
 {
-	IMessage::IMessage(KIND _kind, id_t _client_id) : kind{_kind}, client_id{_client_id}
+	IMessage::IMessage(KIND _kind) : kind{_kind}
 	{}
 
 	Json
@@ -12,7 +12,6 @@ namespace sws
 	{
 		return Json{
 			{"kind", kind},
-			{"client_id", client_id}
 		};
 	}
 
@@ -20,10 +19,9 @@ namespace sws
 	IMessage::deserialize(const Json &json)
 	{
 		kind = json["kind"];
-		client_id = json["client_id"];
 	}
 
-	IRequest::IRequest(IMessage::KIND _kind, id_t _client_id) : IMessage(_kind, _client_id)
+	IRequest::IRequest(IMessage::KIND _kind) : IMessage{_kind}
 	{
 	}
 
@@ -55,8 +53,8 @@ namespace sws
 		return req;
 	}
 
-	IResponse::IResponse(IMessage::KIND _kind, id_t _client_id, Error _error)
-		: IMessage{_kind, _client_id}, error{std::move(_error)}
+	IResponse::IResponse(IMessage::KIND _kind, Error _error)
+		: IMessage{_kind}, error{std::move(_error)}
 	{
 	}
 

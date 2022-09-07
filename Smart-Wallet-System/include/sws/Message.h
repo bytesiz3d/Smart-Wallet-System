@@ -19,8 +19,7 @@ namespace sws
 			KIND_WITHDRAWAL,
 			KIND_QUERY_BALANCE,
 		};
-		IMessage(KIND _kind, id_t _client_id);
-		id_t client_id;
+		IMessage(KIND _kind);
 
 	public:
 		// Override only if additional data is added
@@ -38,7 +37,7 @@ namespace sws
 	class IRequest : public IMessage
 	{
 	protected:
-		IRequest(KIND _kind, id_t _client_id);
+		IRequest(KIND _kind);
 
 	public:
 		static std::unique_ptr<IRequest>
@@ -46,13 +45,13 @@ namespace sws
 
 		// Force override
 		virtual std::unique_ptr<ICommand>
-		command() = 0;
+		command(id_t client_id) = 0;
 	};
 
 	class IResponse : public IMessage
 	{
 	protected:
-		IResponse(KIND _kind, id_t _client_id, Error error);
+		IResponse(KIND _kind, Error error);
 
 	public:
 		Error error;
