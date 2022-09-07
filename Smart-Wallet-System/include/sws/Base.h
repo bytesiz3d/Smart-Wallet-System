@@ -3,12 +3,14 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include <fmt/format.h>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <thread>
 #include <memory>
 #include <queue>
+#include <utility>
 
 namespace sws
 {
@@ -44,10 +46,42 @@ namespace sws
 	{
 	public:
 		std::string msg;
-		inline operator bool() const
+
+		Error() = default;
+
+		template<typename... TArgs>
+		explicit Error(fmt::format_string<TArgs...> fmt, TArgs &&...args)
+			: msg(fmt::format(fmt, std::forward<TArgs>(args)...))
+		{}
+
+		explicit operator bool() const { return msg.empty() == false; }
+		bool operator==(bool v) const { return this->operator bool() == v; }
+		bool operator!=(bool v) const { return !operator==(v); }
+	};
+
+	template<typename T>
+	struct Result
+	{
+		T val;
+		Error err;
+
+		Result(Error e)
+			: err(std::move(e))
 		{
-			return msg.empty() == false;
 		}
+
+		// creates a result instance from a value
+		template<typename... TArgs>
+		Result(TArgs &&...args)
+			: val(std::forward<TArgs>(args)...), err{}
+		{
+		}
+
+		Result(const Result&) = delete;
+		Result(Result&&) noexcept = default;
+		Result& operator=(const Result&) = delete;
+		Result& operator=(Result&&) noexcept = default;
+		~Result() = default;
 	};
 
 	template <typename T>

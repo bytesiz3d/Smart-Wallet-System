@@ -5,9 +5,8 @@
 
 namespace sws
 {
-	class Client_Info
+	struct Client_Info
 	{
-	public:
 		std::string name;
 		uint8_t age;
 

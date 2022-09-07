@@ -24,7 +24,7 @@ target_include_directories(Smart-Wallet-System
 	)
 
 target_link_libraries(Smart-Wallet-System
-	PUBLIC nlohmann::json)
+	PUBLIC nlohmann::json fmt)
 
 include(GenerateExportHeader)
 generate_export_header(Smart-Wallet-System

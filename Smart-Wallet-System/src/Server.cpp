@@ -53,4 +53,53 @@ namespace sws
 	{
 		serving_thread.join();
 	}
+
+	Error
+	Server::deposit(id_t client_id, uint64_t amount)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = active_clients.at(client_id);
+
+		client.data.balance += amount;
+	}
+
+	Error
+	Server::withdraw(id_t client_id, uint64_t amount)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = active_clients.at(client_id);
+
+		if (client.data.balance < amount)
+			return Error{"Insufficient funds"};
+
+		client.data.balance -= amount;
+	}
+
+	Result<Client_Info>
+	Server::update_info(id_t client_id, Client_Info &&new_info)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = active_clients.at(client_id);
+
+		if (new_info.is_valid() == false)
+			return Error{"Invalid info"};
+
+		auto info = static_cast<Client_Info*>(&client.data);
+		auto old_info = *info;
+		*info = new_info;
+		return old_info;
+	}
+
+	Result<uint64_t>
+	Server::query_balance(id_t client_id)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = active_clients.at(client_id);
+
+		return client.data.balance;
+	}
 }

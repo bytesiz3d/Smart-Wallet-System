@@ -13,11 +13,11 @@ Create a smart wallet system platform in C++ on Linux. Clients should be able to
 ### Server
 1. Receive client info
 2. Auto-generate account ID for new clients ($0 initial balance)
-3. Save receieved info
+3. Save received info
 4. Display candidate info
-  - Status bar showing client name
-  - Multi-line text box
-  - Log file of all transactions done
+    - Status bar showing client name
+    - Multi-line text box
+    - Log file of all transactions done
 5. Process transaction on client account
 6. Send amount of money to client
 7. (**BONUS**) Analyze clients info, show statistics and graphs of all accounts

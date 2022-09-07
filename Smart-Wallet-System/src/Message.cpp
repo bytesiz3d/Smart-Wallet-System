@@ -51,7 +51,7 @@ namespace sws
 			return nullptr;
 		}
 
-		req->deserialize(json["request"]);
+		req->deserialize(json);
 		return req;
 	}
 
@@ -99,7 +99,7 @@ namespace sws
 			return nullptr;
 		}
 
-		res->deserialize(json["response"]);
+		res->deserialize(json);
 		return res;
 	}
 }

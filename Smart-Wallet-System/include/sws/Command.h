@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 namespace sws
 {
@@ -21,5 +22,28 @@ namespace sws
 
 		virtual void
 		redo(Server *) = 0;
+
+		virtual std::string
+		describe() = 0;
 	};
+
+	class Command_Log
+	{
+		std::vector<std::unique_ptr<ICommand>> commands;
+		size_t next_command;
+
+	public:
+		void
+		execute_new_command(Server *server, std::unique_ptr<ICommand> &&command);
+
+		void
+		undo_prev_command(Server *server);
+
+		void
+		redo_next_command(Server *server);
+
+		std::vector<std::string>
+		describe_commands();
+	};
+
 }

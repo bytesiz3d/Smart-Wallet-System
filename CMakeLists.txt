@@ -14,6 +14,7 @@ add_subdirectory(thirdparty/SDL2)
 add_subdirectory(thirdparty/imgui)
 add_subdirectory(thirdparty/fonts)
 add_subdirectory(thirdparty/nlohmann-json)
+add_subdirectory(thirdparty/fmt)
 
 # Source
 add_subdirectory(Smart-Wallet-System)
