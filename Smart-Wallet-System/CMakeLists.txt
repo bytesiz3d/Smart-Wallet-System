@@ -9,6 +9,7 @@ add_library(Smart-Wallet-System
 	include/sws/Client_Info.h
 	include/sws/Transaction.h
 	include/sws/Server.h
+	include/sws/Client.h
 
 	src/Base.cpp
 	src/TCP.cpp
@@ -17,6 +18,7 @@ add_library(Smart-Wallet-System
 	src/Client_Info.cpp
 	src/Transaction.cpp
 	src/Server.cpp
+	src/Client.cpp
 	)
 
 target_include_directories(Smart-Wallet-System

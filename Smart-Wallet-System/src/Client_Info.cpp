@@ -33,7 +33,7 @@ namespace sws
 	}
 
 	Json
-	Request_Update_Info::serialize()
+	Request_Update_Info::serialize() const
 	{
 		auto req = IRequest::serialize();
 		req["request"] = {

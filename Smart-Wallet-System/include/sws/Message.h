@@ -24,7 +24,7 @@ namespace sws
 	public:
 		// Override only if additional data is added
 		virtual Json
-		serialize();
+		serialize() const;
 
 		// Override only if additional data is added
 		virtual void
@@ -57,7 +57,7 @@ namespace sws
 		Error error;
 
 		virtual Json
-		serialize() override; // add error
+		serialize() const override; // add error
 
 		virtual void
 		deserialize(const Json &json) override; // add error

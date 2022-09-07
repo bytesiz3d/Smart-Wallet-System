@@ -24,7 +24,7 @@ namespace sws
 	}
 
 	Json
-	Request_Deposit::serialize()
+	Request_Deposit::serialize() const
 	{
 		auto req       = IRequest::serialize();
 		req["request"] = {
@@ -101,7 +101,7 @@ namespace sws
 	}
 
 	Json
-	Request_Withdrawal::serialize()
+	Request_Withdrawal::serialize() const
 	{
 		auto req       = IRequest::serialize();
 		req["request"] = {
@@ -178,13 +178,18 @@ namespace sws
 		return std::make_unique<Command_Query_Balance>(client_id);
 	}
 
+	Response_Query_Balance::Response_Query_Balance()
+		: IResponse{KIND_QUERY_BALANCE, {}}, balance{}
+	{
+	}
+
 	Response_Query_Balance::Response_Query_Balance(Error _error, uint64_t _balance)
 		: IResponse{KIND_QUERY_BALANCE, std::move(_error)}, balance{_balance}
 	{
 	}
 
 	Json
-	Response_Query_Balance::serialize()
+	Response_Query_Balance::serialize() const
 	{
 		auto res        = IResponse::serialize();
 		res["response"] = {
@@ -197,6 +202,14 @@ namespace sws
 	{
 		IResponse::deserialize(json);
 		balance = json["response"]["balance"];
+	}
+
+	Result<uint64_t>
+	Response_Query_Balance::result()
+	{
+		Result<uint64_t> res = error;
+		res.val = balance;
+		return res;
 	}
 
 	Command_Query_Balance::Command_Query_Balance(id_t client_id)

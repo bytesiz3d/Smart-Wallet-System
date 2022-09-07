@@ -75,6 +75,8 @@ namespace sws
 
 		static void
 		listen_for_connections(Server *self);
+
+		Server();
 	public:
 		static Server *
 		instance();

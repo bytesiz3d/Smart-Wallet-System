@@ -24,8 +24,8 @@ namespace sws
 	}
 
 	Session::Session(tcp::Connection &&con)
+		: serving_thread{serve, std::move(con), requests, responses}
 	{
-		serving_thread = std::thread(serve, std::move(con), requests, responses);
 	}
 
 	Session::~Session()
@@ -56,6 +56,11 @@ namespace sws
 
 	Server::Client::Client(tcp::Connection &&con)
 		: session{std::move(con)}
+	{
+	}
+
+	Server::Server()
+		: listening_thread{listen_for_connections, this}
 	{
 	}
 
@@ -94,9 +99,9 @@ namespace sws
 		if (new_info.is_valid() == false)
 			return Error{"Invalid info"};
 
-		auto info = static_cast<Client_Info*>(&client.data);
+		auto info     = static_cast<Client_Info *>(&client.data);
 		auto old_info = *info;
-		*info = new_info;
+		*info         = new_info;
 		return old_info;
 	}
 
@@ -169,9 +174,9 @@ namespace sws
 
 		auto &client = active_clients.at(client_id);
 
-		Client_Data_with_Logs data = {};
-		*static_cast<Client_Data*>(&data) = client.data;
-		data.logs = client.log.describe_commands();
+		Client_Data_with_Logs data         = {};
+		*static_cast<Client_Data *>(&data) = client.data;
+		data.logs                          = client.log.describe_commands();
 
 		return data;
 	}

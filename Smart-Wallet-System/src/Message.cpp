@@ -8,7 +8,7 @@ namespace sws
 	{}
 
 	Json
-	IMessage::serialize()
+	IMessage::serialize() const
 	{
 		return Json{
 			{"kind", kind},
@@ -45,6 +45,10 @@ namespace sws
 			req = std::make_unique<Request_Withdrawal>();
 			break;
 
+		case KIND_QUERY_BALANCE:
+			req = std::make_unique<Request_Query_Balance>();
+			break;
+
 		default:
 			return nullptr;
 		}
@@ -59,7 +63,7 @@ namespace sws
 	}
 
 	Json
-	IResponse::serialize()
+	IResponse::serialize() const
 	{
 		auto res = IMessage::serialize();
 		res["error"] = error.msg;
@@ -91,6 +95,10 @@ namespace sws
 
 		case KIND_WITHDRAWAL:
 			res = std::make_unique<Response_Withdrawal>();
+			break;
+
+		case KIND_QUERY_BALANCE:
+			res = std::make_unique<Response_Query_Balance>();
 			break;
 
 		default:

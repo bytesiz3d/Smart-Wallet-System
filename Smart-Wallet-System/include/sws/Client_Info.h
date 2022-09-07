@@ -28,7 +28,7 @@ namespace sws
 		Request_Update_Info(Client_Info _client_info);
 
 		Json
-		serialize() override;
+		serialize() const override;
 
 		void
 		deserialize(const Json &json) override;

@@ -24,7 +24,7 @@ namespace sws
 		Request_Deposit(Transaction _deposit);
 
 		Json
-		serialize() override;
+		serialize() const override;
 
 		void
 		deserialize(const Json &json) override;
@@ -68,7 +68,7 @@ namespace sws
 		Request_Withdrawal(Transaction _withdrawal);
 
 		Json
-		serialize() override;
+		serialize() const override;
 
 		void
 		deserialize(const Json &json) override;
@@ -115,15 +115,18 @@ namespace sws
 	class Response_Query_Balance : public IResponse
 	{
 		uint64_t balance;
-
 	public:
+		Response_Query_Balance(); // uses deserialize
 		Response_Query_Balance(Error _error, uint64_t _balance);
 
 		Json
-		serialize() override;
+		serialize() const override;
 
 		void
 		deserialize(const Json &json) override;
+
+		Result<uint64_t>
+		result();
 	};
 
 	class Command_Query_Balance : public ICommand
