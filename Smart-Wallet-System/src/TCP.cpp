@@ -38,32 +38,32 @@ namespace sws::tcp
 	}
 
 	void
-	Connection::send_message(Mem_View bytes) const
+	Connection::send_message(const Json &json) const
 	{
-		size_t size = bytes.size;
+		std::string msg = json.dump();
+		size_t size = msg.length();
 
 		int sent = ::send(this->handle, &size, sizeof(size), 0);
 		assert(sent == sizeof(size));
 
-		sent = ::send(this->handle, bytes.data, size, 0);
+		sent = ::send(this->handle, msg.data(), size, 0);
 		assert(sent == size);
 	}
 
-	Mem_Block
+	Json
 	Connection::receive_message() const
 	{
 		size_t size = 0;
 		int read    = ::recv(this->handle, &size, sizeof(size), 0);
 		if (read == 0)
-			return {};
-
+			return Json{};
 		assert(read == sizeof(size));
 
-		Mem_Block bytes(size);
-		read = ::recv(this->handle, bytes.data, size, 0);
+		std::string msg(size, '\0');
+		read = ::recv(this->handle, msg.data(), size, 0);
 		assert(read == size);
 
-		return bytes;
+		return Json::parse(msg);
 	}
 
 	Client::Client()
@@ -93,7 +93,7 @@ namespace sws::tcp
 
 	Server::~Server()
 	{
-		printf("%d DYING\n", this->handle);
+		printf("%d DYING\n", this->handle); // DEBUG
 		::close(this->handle);
 	}
 

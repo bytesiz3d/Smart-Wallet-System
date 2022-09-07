@@ -1,7 +1,6 @@
 #pragma once
 #include "sws/Message.h"
 #include "sws/Command.h"
-#include "sws/Server.h"
 #include <string>
 
 namespace sws
@@ -26,13 +25,14 @@ namespace sws
 		Client_Info client_info;
 
 	public:
+		Request_Update_Info(); // uses deserialize for initialization
 		Request_Update_Info(id_t _client_id, Client_Info _client_info);
 
-		void
-		serialize(Serializer &serializer) override;
+		Json
+		serialize() override;
 
 		void
-		deserialize(Deserializer &deserializer) override;
+		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
 		command() override;
@@ -41,9 +41,11 @@ namespace sws
 	class Response_Update_Info : public IResponse
 	{
 	public:
+		Response_Update_Info(); // uses deserialize
 		Response_Update_Info(id_t _client_id, Error _error);
 	};
 
+	class Server;
 	class Command_Update_Info : public ICommand
 	{
 		Client_Info old_info, new_info;

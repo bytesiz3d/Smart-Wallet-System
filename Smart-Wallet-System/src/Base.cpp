@@ -1,30 +1,9 @@
 #include "sws/Base.h"
 #include <assert.h>
 #include <stdio.h>
-#include <string.h>
 
 namespace sws
 {
-	Mem_Block::Mem_Block(size_t _size) : Mem{nullptr, _size}
-	{
-		if (size == 0)
-			return;
-
-		data = ::malloc(size);
-		::memset(data, 0, size);
-	}
-
-	Mem_Block::~Mem_Block()
-	{
-		if (data)
-			::free(data);
-	}
-
-	Mem_Block::Mem_Block(Mem_Block &&other) noexcept : Mem{other.data, other.size}
-	{
-		other.data = nullptr;
-	}
-
 class Logger_Default : public ILogger
 	{
 		Logger_Default() = default;

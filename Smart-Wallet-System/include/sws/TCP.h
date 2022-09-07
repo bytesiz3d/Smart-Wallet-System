@@ -1,6 +1,7 @@
 #pragma once
-#include "sws/Base.h"
+#include <nlohmann/json.hpp>
 
+using Json = nlohmann::json;
 namespace sws::tcp
 {
 	class Connection
@@ -19,9 +20,9 @@ namespace sws::tcp
 		is_valid() const;
 
 		void
-		send_message(Mem_View bytes) const;
+		send_message(const Json &json) const;
 
-		Mem_Block
+		Json
 		receive_message() const;
 	};
 

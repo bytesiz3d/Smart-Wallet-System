@@ -1,6 +1,5 @@
 #include "sws/Message.h"
 #include "sws/Client_Info.h"
-#include "sws/Serializer.h"
 #include "sws/Transaction.h"
 
 namespace sws
@@ -8,11 +7,20 @@ namespace sws
 	IMessage::IMessage(KIND _kind, id_t _client_id) : kind{_kind}, client_id{_client_id}
 	{}
 
-	void
-	IMessage::serialize(Serializer &serializer)
+	Json
+	IMessage::serialize()
 	{
-		serializer.push(kind);
-		serializer.push(client_id);
+		return Json{
+			{"kind", kind},
+			{"client_id", client_id}
+		};
+	}
+
+	void
+	IMessage::deserialize(const Json &json)
+	{
+		kind = json["kind"];
+		client_id = json["client_id"];
 	}
 
 	IRequest::IRequest(IMessage::KIND _kind, id_t _client_id) : IMessage(_kind, _client_id)
@@ -20,38 +28,31 @@ namespace sws
 	}
 
 	std::unique_ptr<IRequest>
-	IRequest::deserialize_base(Deserializer &deserializer)
+	IRequest::deserialize_base(const Json &json)
 	{
-		auto kind = deserializer.read<KIND>();
-		auto client_id = deserializer.read<id_t>();
-
+		KIND kind = json["kind"];
 		std::unique_ptr<IRequest> req{};
 
 		switch (kind)
 		{
 		case KIND_UPDATE_INFO:
-			req = std::make_unique<Request_Update_Info>(client_id, Client_Info{});
+			req = std::make_unique<Request_Update_Info>();
 			break;
 
 		case KIND_DEPOSIT:
-			req = std::make_unique<Request_Deposit>(client_id, Tx_Deposit{0});
+			req = std::make_unique<Request_Deposit>();
 			break;
 
 		case KIND_WITHDRAWAL:
-			req = std::make_unique<Request_Withdrawal>(client_id, Tx_Withdrawal{0});
+			req = std::make_unique<Request_Withdrawal>();
 			break;
 
 		default:
 			return nullptr;
 		}
 
-		req->deserialize(deserializer);
+		req->deserialize(json["request"]);
 		return req;
-	}
-
-	void
-	IRequest::deserialize(Deserializer &deserializer)
-	{
 	}
 
 	IResponse::IResponse(IMessage::KIND _kind, id_t _client_id, Error _error)
@@ -59,46 +60,46 @@ namespace sws
 	{
 	}
 
-	void
-	IResponse::serialize(Serializer &serializer)
+	Json
+	IResponse::serialize()
 	{
-		IMessage::serialize(serializer);
-		serializer.push(error.msg);
+		auto res = IMessage::serialize();
+		res["error"] = error.msg;
+		return res;
+	}
+
+	void
+	IResponse::deserialize(const Json &json)
+	{
+		IMessage::deserialize(json);
+		error.msg = json["error"];
 	}
 
 	std::unique_ptr<IResponse>
-	IResponse::deserialize_base(Deserializer &deserializer)
+	IResponse::deserialize_base(const Json &json)
 	{
-		auto kind = deserializer.read<KIND>();
-		auto client_id = deserializer.read<id_t>();
-		auto error_msg = deserializer.read<std::string>();
-
-		std::unique_ptr<IResponse> res;
+		KIND kind = json["kind"];
+		std::unique_ptr<IResponse> res{};
 
 		switch (kind)
 		{
 		case KIND_UPDATE_INFO:
-			res = std::make_unique<Response_Update_Info>(client_id, Error{error_msg});
+			res = std::make_unique<Response_Update_Info>();
 			break;
 
 		case KIND_DEPOSIT:
-			res = std::make_unique<Response_Deposit>(client_id, Error{error_msg});
+			res = std::make_unique<Response_Deposit>();
 			break;
 
 		case KIND_WITHDRAWAL:
-			res = std::make_unique<Response_Withdrawal>(client_id, Error{error_msg});
+			res = std::make_unique<Response_Withdrawal>();
 			break;
 
 		default:
 			return nullptr;
 		}
 
-		res->deserialize(deserializer);
+		res->deserialize(json["response"]);
 		return res;
-	}
-
-	void
-	IResponse::deserialize(Deserializer &deserializer)
-	{
 	}
 }

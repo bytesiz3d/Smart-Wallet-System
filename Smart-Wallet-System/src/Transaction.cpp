@@ -1,6 +1,5 @@
 #include "sws/Transaction.h"
-
-#include "sws/Serializer.h"
+#include "sws/Server.h"
 #include <utility>
 
 namespace sws
@@ -24,28 +23,42 @@ namespace sws
 	{
 	}
 
+	Request_Deposit::Request_Deposit()
+		: IRequest{IRequest::KIND_DEPOSIT, {}}, deposit{0}
+	{
+	}
+
 	Request_Deposit::Request_Deposit(id_t _client_id, Tx_Deposit _deposit)
 		: IRequest{IRequest::KIND_DEPOSIT, _client_id}, deposit{std::move(_deposit)}
 	{
 	}
 
-	void
-	Request_Deposit::serialize(Serializer &serializer)
+	Json
+	Request_Deposit::serialize()
 	{
-		IRequest::serialize(serializer);
-		serializer.push(deposit.amount);
+		auto req = IRequest::serialize();
+		req["request"] = {
+			{"amount", deposit.amount}
+		};
+		return req;
 	}
 
 	void
-	Request_Deposit::deserialize(Deserializer &deserializer)
+	Request_Deposit::deserialize(const Json &json)
 	{
-		deposit.amount = deserializer.read<decltype(deposit.amount)>();
+		IRequest::deserialize(json);
+		deposit.amount = json["request"]["amount"];
 	}
 
 	std::unique_ptr<ICommand>
 	Request_Deposit::command()
 	{
 		return std::make_unique<Command_Deposit>(client_id, deposit);
+	}
+
+	Response_Deposit::Response_Deposit()
+		: IResponse{IRequest::KIND_DEPOSIT, {}, {}}
+	{
 	}
 
 	Response_Deposit::Response_Deposit(id_t _client_id, Error _error)
@@ -78,28 +91,42 @@ namespace sws
 	{
 	}
 
+	Request_Withdrawal::Request_Withdrawal()
+		: IRequest{IRequest::KIND_WITHDRAWAL, {}}, withdrawal{0}
+	{
+	}
+
 	Request_Withdrawal::Request_Withdrawal(id_t _client_id, Tx_Withdrawal _withdrawal)
 		: IRequest{IRequest::KIND_WITHDRAWAL, _client_id}, withdrawal{std::move(_withdrawal)}
 	{
 	}
 
-	void
-	Request_Withdrawal::serialize(Serializer &serializer)
+	Json
+	Request_Withdrawal::serialize()
 	{
-		IRequest::serialize(serializer);
-		serializer.push(withdrawal.amount);
+		auto req = IRequest::serialize();
+		req["request"] = {
+			{"amount", withdrawal.amount}
+		};
+		return req;
 	}
 
 	void
-	Request_Withdrawal::deserialize(Deserializer &deserializer)
+	Request_Withdrawal::deserialize(const Json &json)
 	{
-		withdrawal.amount = deserializer.read<decltype(withdrawal.amount)>();
+		IRequest::deserialize(json);
+		withdrawal.amount = json["request"]["amount"];
 	}
 
 	std::unique_ptr<ICommand>
 	Request_Withdrawal::command()
 	{
 		return std::make_unique<Command_Withdrawal>(client_id, withdrawal);
+	}
+
+	Response_Withdrawal::Response_Withdrawal()
+		: IResponse{IRequest::KIND_WITHDRAWAL, {}, {}}
+	{
 	}
 
 	Response_Withdrawal::Response_Withdrawal(id_t _client_id, Error _error)
@@ -143,18 +170,21 @@ namespace sws
 	{
 	}
 
-	void
-	Response_Query_Balance::serialize(Serializer &serializer)
+	Json
+	Response_Query_Balance::serialize()
 	{
-		IResponse::serialize(serializer);
-		serializer.push(amount);
+		auto res = IResponse::serialize();
+		res["response"] = {
+			{"amount", amount}
+		};
+		return res;
 	}
 
 	void
-	Response_Query_Balance::deserialize(Deserializer &deserializer)
+	Response_Query_Balance::deserialize(const Json &json)
 	{
-		IResponse::deserialize(deserializer);
-		amount = deserializer.read<decltype(amount)>();
+		IResponse::deserialize(json);
+		amount = json["response"]["amount"];
 	}
 
 	Command_Query_Balance::Command_Query_Balance(id_t client_id)

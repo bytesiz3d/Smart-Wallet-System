@@ -13,6 +13,7 @@ find_package(OpenGL REQUIRED)
 add_subdirectory(thirdparty/SDL2)
 add_subdirectory(thirdparty/imgui)
 add_subdirectory(thirdparty/fonts)
+add_subdirectory(thirdparty/nlohmann-json)
 
 # Source
 add_subdirectory(Smart-Wallet-System)

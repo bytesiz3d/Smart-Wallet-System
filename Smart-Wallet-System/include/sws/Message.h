@@ -1,12 +1,13 @@
 #pragma once
 #include "sws/Base.h"
 #include <memory>
+#include <nlohmann/json.hpp>
+
+using Json = nlohmann::json;
 
 namespace sws
 {
 	class ICommand;
-	class Serializer;
-	class Deserializer;
 
 	class IMessage
 	{
@@ -19,16 +20,19 @@ namespace sws
 			KIND_QUERY_BALANCE,
 		};
 		IMessage(KIND _kind, id_t _client_id);
-		const id_t client_id;
+		id_t client_id;
 
 	public:
+		// Override only if additional data is added
+		virtual Json
+		serialize();
+
+		// Override only if additional data is added
 		virtual void
-		serialize(Serializer &serializer);
-		virtual void
-		deserialize(Deserializer &deserializer) = 0;
+		deserialize(const Json &json);
 
 	private:
-		const KIND kind;
+		KIND kind;
 	};
 
 	class IRequest : public IMessage
@@ -38,11 +42,9 @@ namespace sws
 
 	public:
 		static std::unique_ptr<IRequest>
-		deserialize_base(Deserializer &deserializer);
+		deserialize_base(const Json &json);
 
-		virtual void
-		deserialize(Deserializer &deserializer) override;
-
+		// Force override
 		virtual std::unique_ptr<ICommand>
 		command() = 0;
 	};
@@ -55,13 +57,13 @@ namespace sws
 	public:
 		Error error;
 
+		virtual Json
+		serialize() override; // add error
+
+		virtual void
+		deserialize(const Json &json) override; // add error
+
 		static std::unique_ptr<IResponse>
-		deserialize_base(Deserializer &deserializer);
-
-		virtual void
-		serialize(Serializer &serializer) override;
-
-		virtual void
-		deserialize(Deserializer &deserializer) override;
+		deserialize_base(const Json &json);
 	};
 }

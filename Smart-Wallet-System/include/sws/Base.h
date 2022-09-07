@@ -6,48 +6,13 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <thread>
+#include <memory>
+#include <queue>
 
 namespace sws
 {
 	using id_t = uint32_t;
-	struct Mem
-	{
-		void *data;
-		size_t size;
-	};
-
-	class Mem_Block : public Mem
-	{
-	public:
-		explicit Mem_Block(size_t _size = 0);
-
-		~Mem_Block();
-
-		Mem_Block(Mem_Block &&other) noexcept;
-	};
-
-	class Mem_View : public Mem
-	{
-	public:
-		template<typename T>
-		inline Mem_View(T &value)
-		{
-			if constexpr (std::is_same_v<T, Mem_Block>)
-			{
-				this->data = value.data;
-				this->size = value.size;
-			}
-			else
-			{
-				this->data = &value;
-				this->size = sizeof(value);
-			}
-		}
-
-		inline Mem_View(void *_data, size_t _size) : Mem{_data, _size}
-		{
-		}
-	};
 
 	class ILogger
 	{
@@ -82,6 +47,40 @@ namespace sws
 		inline operator bool() const
 		{
 			return msg.empty() == false;
+		}
+	};
+
+	template <typename T>
+	class Thread_Safe_Queue
+	{
+		std::mutex mtx;
+		std::queue<std::unique_ptr<T>> q;
+	public:
+		inline bool
+		empty()
+		{
+			mtx.lock();
+			bool empty = q.empty();
+			mtx.unlock();
+			return empty;
+		}
+
+		inline void
+		push(std::unique_ptr<T> &&val)
+		{
+			mtx.lock();
+			q.push(std::move(val));
+			mtx.unlock();
+		}
+
+		inline std::unique_ptr<T>
+		pop()
+		{
+			mtx.lock();
+			auto front = std::move(q.front());
+			q.pop();
+			mtx.unlock();
+			return front;
 		}
 	};
 }
