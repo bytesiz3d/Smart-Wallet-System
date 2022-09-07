@@ -7,31 +7,21 @@
 
 namespace sws
 {
-	class ITransaction
+	struct Transaction
 	{
-	public:
 		uint64_t amount;
 
-	protected:
-		explicit ITransaction(uint64_t _amount);
-
-		virtual Error
-		is_valid() const final;
-	};
-
-	class Tx_Deposit : public ITransaction
-	{
-	public:
-		explicit Tx_Deposit(uint64_t _amount);
+		Error
+		is_valid() const;
 	};
 
 	class Request_Deposit : public IRequest
 	{
-		Tx_Deposit deposit;
+		Transaction deposit;
 
 	public:
 		Request_Deposit(); // uses deserialize for initialization
-		Request_Deposit(id_t _client_id, Tx_Deposit _deposit);
+		Request_Deposit(id_t _client_id, Transaction _deposit);
 
 		Json
 		serialize() override;
@@ -52,11 +42,11 @@ namespace sws
 
 	class Command_Deposit : public ICommand
 	{
-		Tx_Deposit deposit;
+		Transaction deposit;
 	public:
-		explicit Command_Deposit(id_t client_id, Tx_Deposit _deposit);
+		explicit Command_Deposit(id_t client_id, Transaction _deposit);
 
-		void
+		std::unique_ptr<IResponse>
 		execute(Server *server) override;
 
 		void
@@ -64,21 +54,18 @@ namespace sws
 
 		void
 		redo(Server *server) override;
-	};
 
-	class Tx_Withdrawal : public ITransaction
-	{
-	public:
-		explicit Tx_Withdrawal(uint64_t _amount);
+		std::string
+		describe() override;
 	};
 
 	class Request_Withdrawal : public IRequest
 	{
-		Tx_Withdrawal withdrawal;
+		Transaction withdrawal;
 
 	public:
 		Request_Withdrawal(); // uses deserialize
-		Request_Withdrawal(id_t _client_id, Tx_Withdrawal _withdrawal);
+		Request_Withdrawal(id_t _client_id, Transaction _withdrawal);
 
 		Json
 		serialize() override;
@@ -99,11 +86,11 @@ namespace sws
 
 	class Command_Withdrawal : public ICommand
 	{
-		Tx_Withdrawal withdrawal;
+		Transaction withdrawal;
 	public:
-		explicit Command_Withdrawal(id_t client_id, Tx_Withdrawal _withdrawal);
+		explicit Command_Withdrawal(id_t client_id, Transaction _withdrawal);
 
-		void
+		std::unique_ptr<IResponse>
 		execute(Server *server) override;
 
 		void
@@ -111,6 +98,9 @@ namespace sws
 
 		void
 		redo(Server *server) override;
+
+		std::string
+		describe() override;
 	};
 
 	class Request_Query_Balance : public IRequest
@@ -124,10 +114,10 @@ namespace sws
 
 	class Response_Query_Balance : public IResponse
 	{
-		uint64_t amount;
+		uint64_t balance;
 
 	public:
-		Response_Query_Balance(id_t _client_id, Error _error, uint64_t _amount);
+		Response_Query_Balance(id_t _client_id, Error _error, uint64_t _balance);
 
 		Json
 		serialize() override;
@@ -141,7 +131,7 @@ namespace sws
 	public:
 		explicit Command_Query_Balance(id_t client_id);
 
-		void
+		std::unique_ptr<IResponse>
 		execute(Server *server) override;
 
 		void
@@ -149,5 +139,8 @@ namespace sws
 
 		void
 		redo(Server *server) override;
+
+		std::string
+		describe() override;
 	};
 }

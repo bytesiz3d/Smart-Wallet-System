@@ -51,7 +51,7 @@ namespace sws
 	public:
 		explicit Command_Update_Info(id_t client_id, Client_Info _new_info);
 
-		void
+		std::unique_ptr<IResponse>
 		execute(Server *server) override;
 
 		void
@@ -59,5 +59,8 @@ namespace sws
 
 		void
 		redo(Server *server) override;
+
+		std::string
+		describe() override;
 	};
 }

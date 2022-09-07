@@ -5,7 +5,7 @@
 namespace sws
 {
 	Error
-	ITransaction::is_valid() const
+	Transaction::is_valid() const
 	{
 		if (amount <= 0)
 			return Error{"Invalid amount"};
@@ -13,33 +13,22 @@ namespace sws
 		return Error{};
 	}
 
-	ITransaction::ITransaction(uint64_t _amount)
-		: amount{_amount}
-	{
-	}
-
-	Tx_Deposit::Tx_Deposit(uint64_t _amount)
-		: ITransaction{_amount}
-	{
-	}
-
 	Request_Deposit::Request_Deposit()
-		: IRequest{IRequest::KIND_DEPOSIT, {}}, deposit{0}
+		: IRequest{IRequest::KIND_DEPOSIT, {}}, deposit{}
 	{
 	}
 
-	Request_Deposit::Request_Deposit(id_t _client_id, Tx_Deposit _deposit)
-		: IRequest{IRequest::KIND_DEPOSIT, _client_id}, deposit{std::move(_deposit)}
+	Request_Deposit::Request_Deposit(id_t _client_id, Transaction _deposit)
+		: IRequest{IRequest::KIND_DEPOSIT, _client_id}, deposit{_deposit}
 	{
 	}
 
 	Json
 	Request_Deposit::serialize()
 	{
-		auto req = IRequest::serialize();
+		auto req       = IRequest::serialize();
 		req["request"] = {
-			{"amount", deposit.amount}
-		};
+			{"amount", deposit.amount}};
 		return req;
 	}
 
@@ -66,29 +55,39 @@ namespace sws
 	{
 	}
 
-	Command_Deposit::Command_Deposit(id_t client_id, Tx_Deposit _deposit)
-		: ICommand(client_id), deposit{std::move(_deposit)}
+	Command_Deposit::Command_Deposit(id_t client_id, Transaction _deposit)
+		: ICommand(client_id), deposit{_deposit}
 	{
 	}
 
-	void
+	std::unique_ptr<IResponse>
 	Command_Deposit::execute(Server *server)
 	{
+		if (auto err = deposit.is_valid())
+			return std::make_unique<Response_Deposit>(client_id, err);
+
+		auto err = server->withdraw(client_id, deposit.amount);
+		return std::make_unique<Response_Deposit>(client_id, err);
 	}
 
 	void
 	Command_Deposit::undo(Server *server)
 	{
+		auto err = server->withdraw(client_id, deposit.amount);
+		assert(err == false);
 	}
 
 	void
 	Command_Deposit::redo(Server *server)
 	{
+		auto err = server->deposit(client_id, deposit.amount);
+		assert(err == false);
 	}
 
-	Tx_Withdrawal::Tx_Withdrawal(uint64_t _amount)
-		: ITransaction(_amount)
+	std::string
+	Command_Deposit::describe()
 	{
+		return fmt::format("Deposit {}", deposit.amount);
 	}
 
 	Request_Withdrawal::Request_Withdrawal()
@@ -96,18 +95,17 @@ namespace sws
 	{
 	}
 
-	Request_Withdrawal::Request_Withdrawal(id_t _client_id, Tx_Withdrawal _withdrawal)
-		: IRequest{IRequest::KIND_WITHDRAWAL, _client_id}, withdrawal{std::move(_withdrawal)}
+	Request_Withdrawal::Request_Withdrawal(id_t _client_id, Transaction _withdrawal)
+		: IRequest{IRequest::KIND_WITHDRAWAL, _client_id}, withdrawal{_withdrawal}
 	{
 	}
 
 	Json
 	Request_Withdrawal::serialize()
 	{
-		auto req = IRequest::serialize();
+		auto req       = IRequest::serialize();
 		req["request"] = {
-			{"amount", withdrawal.amount}
-		};
+			{"amount", withdrawal.amount}};
 		return req;
 	}
 
@@ -134,24 +132,39 @@ namespace sws
 	{
 	}
 
-	Command_Withdrawal::Command_Withdrawal(id_t client_id, Tx_Withdrawal _withdrawal)
-		: ICommand(client_id), withdrawal(std::move(_withdrawal))
+	Command_Withdrawal::Command_Withdrawal(id_t client_id, Transaction _withdrawal)
+		: ICommand(client_id), withdrawal(_withdrawal)
 	{
 	}
 
-	void
+	std::unique_ptr<IResponse>
 	Command_Withdrawal::execute(Server *server)
 	{
+		if (auto err = withdrawal.is_valid())
+			return std::make_unique<Response_Withdrawal>(client_id, err);
+
+		auto err = server->withdraw(client_id, withdrawal.amount);
+		return std::make_unique<Response_Withdrawal>(client_id, err);
 	}
 
 	void
 	Command_Withdrawal::undo(Server *server)
 	{
+		auto err = server->deposit(client_id, withdrawal.amount);
+		assert(err == false);
 	}
 
 	void
 	Command_Withdrawal::redo(Server *server)
 	{
+		auto err = server->withdraw(client_id, withdrawal.amount);
+		assert(err == false);
+	}
+
+	std::string
+	Command_Withdrawal::describe()
+	{
+		return fmt::format("Withdrawal {}", withdrawal.amount);
 	}
 
 	Request_Query_Balance::Request_Query_Balance(id_t _client_id)
@@ -165,18 +178,17 @@ namespace sws
 		return std::make_unique<Command_Query_Balance>(client_id);
 	}
 
-	Response_Query_Balance::Response_Query_Balance(id_t _client_id, Error _error, uint64_t _amount)
-		: IResponse{KIND_QUERY_BALANCE, _client_id, std::move(_error)}, amount{_amount}
+	Response_Query_Balance::Response_Query_Balance(id_t _client_id, Error _error, uint64_t _balance)
+		: IResponse{KIND_QUERY_BALANCE, _client_id, std::move(_error)}, balance{_balance}
 	{
 	}
 
 	Json
 	Response_Query_Balance::serialize()
 	{
-		auto res = IResponse::serialize();
+		auto res        = IResponse::serialize();
 		res["response"] = {
-			{"amount", amount}
-		};
+			{"balance", balance}};
 		return res;
 	}
 
@@ -184,7 +196,7 @@ namespace sws
 	Response_Query_Balance::deserialize(const Json &json)
 	{
 		IResponse::deserialize(json);
-		amount = json["response"]["amount"];
+		balance = json["response"]["balance"];
 	}
 
 	Command_Query_Balance::Command_Query_Balance(id_t client_id)
@@ -192,18 +204,26 @@ namespace sws
 	{
 	}
 
-	void
+	std::unique_ptr<IResponse>
 	Command_Query_Balance::execute(Server *server)
 	{
+		auto [balance, err] = server->query_balance(client_id);
+		return std::make_unique<Response_Query_Balance>(client_id, err, balance);
 	}
 
 	void
 	Command_Query_Balance::undo(Server *server)
-	{
+	{ // Nothing to undo
 	}
 
 	void
 	Command_Query_Balance::redo(Server *server)
+	{ // Nothing to redo
+	}
+
+	std::string
+	Command_Query_Balance::describe()
 	{
+		return "Query Balance";
 	}
 }

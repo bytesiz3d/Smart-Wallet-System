@@ -1,4 +1,5 @@
 #include "sws/Command.h"
+#include "sws/Message.h"
 #include "sws/Base.h"
 #include "assert.h"
 
@@ -9,18 +10,22 @@ namespace sws
 	{
 	}
 
-	void
+	std::unique_ptr<IResponse>
 	Command_Log::execute_new_command(Server *server, std::unique_ptr<ICommand> &&command)
 	{
-		// Any command after next_command should be deleted
-		commands.resize(next_command);
-
 		// Execute command
-		command->execute(server);
+		auto res = command->execute(server);
 
-		commands.push_back(std::move(command));
-		next_command++;
-		assert(commands.size() == next_command);
+		if (res->error == false)
+		{
+			// Any command after next_command should be deleted
+			commands.resize(next_command);
+			commands.push_back(std::move(command));
+			next_command++;
+			assert(commands.size() == next_command);
+		}
+
+		return res;
 	}
 
 	void

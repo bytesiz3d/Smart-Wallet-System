@@ -1,4 +1,5 @@
 #include "sws/Client_Info.h"
+#include "sws/Server.h"
 #include <utility>
 
 namespace sws
@@ -75,18 +76,47 @@ namespace sws
 	{
 	}
 
-	void
+	std::unique_ptr<IResponse>
 	Command_Update_Info::execute(Server *server)
 	{
+		auto [old, err] = server->update_info(client_id, new_info);
+		if (err == false)
+			old_info = old;
+
+		return std::make_unique<Response_Update_Info>(client_id, err);
 	}
 
 	void
 	Command_Update_Info::undo(Server *server)
 	{
+		auto [old, err] = server->update_info(client_id, old_info);
+		assert(err == false);
 	}
 
 	void
 	Command_Update_Info::redo(Server *server)
 	{
+		auto [old, err] = server->update_info(client_id, new_info);
+		assert(err == false);
+	}
+
+	std::string
+	Command_Update_Info::describe()
+	{
+		std::string description;
+
+		if (old_info.name != new_info.name)
+			description += fmt::format("name: {} -> {}", old_info.name, new_info.name);
+
+		if (old_info.age != new_info.age)
+			description += fmt::format(" age: {} -> {}", old_info.age, new_info.age);
+
+		if (old_info.national_id != new_info.national_id)
+			description += fmt::format(" national_id: {:014} -> {:014}", old_info.national_id, new_info.national_id);
+
+		if (old_info.address != new_info.address)
+			description += fmt::format(" address: {} -> {}", old_info.address, new_info.address);
+
+		return description;
 	}
 }

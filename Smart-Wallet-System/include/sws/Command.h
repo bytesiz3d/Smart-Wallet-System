@@ -1,20 +1,23 @@
 #pragma once
+#include "sws/Base.h"
+
 #include <memory>
 #include <vector>
 
 namespace sws
 {
 	class Server;
-	class IRequest;
+	class IResponse;
 
 	class ICommand
 	{
-		id_t client_id;
 	protected:
 		explicit ICommand(id_t _client_id);
 
+		id_t client_id;
+
 	public:
-		virtual void
+		virtual std::unique_ptr<IResponse>
 		execute(Server *) = 0;
 
 		virtual void
@@ -33,7 +36,7 @@ namespace sws
 		size_t next_command;
 
 	public:
-		void
+		std::unique_ptr<IResponse>
 		execute_new_command(Server *server, std::unique_ptr<ICommand> &&command);
 
 		void

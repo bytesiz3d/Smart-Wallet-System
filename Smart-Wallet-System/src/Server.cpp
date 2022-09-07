@@ -3,7 +3,7 @@
 namespace sws
 {
 	void
-	Client_Session::serve(tcp::Connection con, std::shared_ptr<Request_Queue> requests, std::shared_ptr<Response_Queue> responses)
+	Session::serve(tcp::Connection con, std::shared_ptr<Request_Queue> requests, std::shared_ptr<Response_Queue> responses)
 	{
 		// TODO: send ack?
 		while (true)
@@ -23,18 +23,18 @@ namespace sws
 		}
 	}
 
-	Client_Session::Client_Session(tcp::Connection &&con)
+	Session::Session(tcp::Connection &&con)
 	{
 		serving_thread = std::thread(serve, std::move(con), requests, responses);
 	}
 
-	Client_Session::~Client_Session()
+	Session::~Session()
 	{
 		wait_for_disconnect();
 	}
 
 	std::unique_ptr<IRequest>
-	Client_Session::receive_request()
+	Session::receive_request()
 	{
 		if (requests->empty())
 			return nullptr;
@@ -43,15 +43,20 @@ namespace sws
 	}
 
 	void
-	Client_Session::send_response(std::unique_ptr<IResponse> &&response)
+	Session::send_response(std::unique_ptr<IResponse> &&response)
 	{
 		responses->push(std::move(response));
 	}
 
 	void
-	Client_Session::wait_for_disconnect()
+	Session::wait_for_disconnect()
 	{
 		serving_thread.join();
+	}
+
+	Server::Client::Client(tcp::Connection &&con)
+		: session{std::move(con)}
+	{
 	}
 
 	Error
@@ -62,6 +67,7 @@ namespace sws
 		auto &client = active_clients.at(client_id);
 
 		client.data.balance += amount;
+		return Error{};
 	}
 
 	Error
@@ -75,10 +81,11 @@ namespace sws
 			return Error{"Insufficient funds"};
 
 		client.data.balance -= amount;
+		return Error{};
 	}
 
 	Result<Client_Info>
-	Server::update_info(id_t client_id, Client_Info &&new_info)
+	Server::update_info(id_t client_id, const Client_Info &new_info)
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
@@ -101,5 +108,71 @@ namespace sws
 		auto &client = active_clients.at(client_id);
 
 		return client.data.balance;
+	}
+
+	void
+	Server::listen_for_connections(Server *self)
+	{
+		tcp::Server server;
+		while (self->listening_thread_should_exit.test() == false)
+		{
+			auto connection = server.accept();
+			self->listening_thread_connections.push({self->next_client_id++, std::move(connection)});
+		}
+	}
+
+	Server *
+	Server::instance()
+	{
+		static Server SERVER{};
+		return &SERVER;
+	}
+
+	void
+	Server::update_state()
+	{
+		// Start sessions
+		while (listening_thread_connections.empty())
+		{
+			auto [id, con] = listening_thread_connections.pop();
+			active_clients.emplace(id, std::move(con)); // start a new session
+		}
+
+		// See if there's any requests
+		for (auto &[id, client] : active_clients)
+		{
+			while (true)
+			{
+				auto req = client.session.receive_request();
+				if (req == nullptr)
+					break;
+
+				auto res = client.log.execute_new_command(this, req->command());
+				client.session.send_response(std::move(res));
+			}
+		}
+	}
+
+	std::vector<id_t>
+	Server::clients()
+	{
+		std::vector<id_t> ids;
+		for (auto &[id, client] : active_clients)
+			ids.push_back(id);
+		return ids;
+	}
+
+	Client_Data_with_Logs
+	Server::client_data(id_t client_id)
+	{
+		assert(active_clients.contains(client_id));
+
+		auto &client = active_clients.at(client_id);
+
+		Client_Data_with_Logs data = {};
+		*static_cast<Client_Data*>(&data) = client.data;
+		data.logs = client.log.describe_commands();
+
+		return data;
 	}
 }

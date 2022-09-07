@@ -15,11 +15,11 @@ namespace sws
 	class IResponse;
 
 	// Client thread to server
-	using Request_Queue = Thread_Safe_Queue<IRequest>;
+	using Request_Queue = Thread_Safe_Queue<std::unique_ptr<IRequest>>;
 	// Server to client thread
-	using Response_Queue = Thread_Safe_Queue<IResponse>;
+	using Response_Queue = Thread_Safe_Queue<std::unique_ptr<IResponse>>;
 
-	class Client_Session
+	class Session
 	{
 		std::thread serving_thread;
 
@@ -30,8 +30,9 @@ namespace sws
 		serve(tcp::Connection con, std::shared_ptr<Request_Queue> requests, std::shared_ptr<Response_Queue> responses);
 
 	public:
-		explicit Client_Session(tcp::Connection &&con);
-		~Client_Session();
+		Session() = delete;
+		explicit Session(tcp::Connection &&con);
+		~Session();
 
 		std::unique_ptr<IRequest>
 		receive_request();
@@ -58,15 +59,25 @@ namespace sws
 	{
 		std::thread listening_thread;
 		std::atomic_flag listening_thread_should_exit;
+		Thread_Safe_Queue<std::pair<id_t, tcp::Connection>> listening_thread_connections;
 		std::atomic<id_t> next_client_id;
 
 		struct Client
 		{
 			Client_Data data;
-			Client_Session session;
+			Session session;
 			Command_Log log;
+
+			Client() = delete;
+			explicit Client(tcp::Connection &&con);
 		};
 		std::unordered_map<id_t, Client> active_clients;
+
+		static void
+		listen_for_connections(Server *self);
+	public:
+		static Server *
+		instance();
 
 		Error
 		deposit(id_t client_id, uint64_t amount);
@@ -75,23 +86,18 @@ namespace sws
 		withdraw(id_t client_id, uint64_t amount);
 
 		Result<Client_Info>
-		update_info(id_t client_id, Client_Info &&new_info);
+		update_info(id_t client_id, const Client_Info &new_info);
 
 		Result<uint64_t>
 		query_balance(id_t client_id);
 
-		static void
-		listen_for_clients(std::shared_ptr<Server> self);
-
-		Server();
-	public:
-		static std::shared_ptr<Server>
-		instance();
+		void
+		update_state();
 
 		std::vector<id_t>
 		clients();
 
-		Client_Data_with_Logs // Command log
+		Client_Data_with_Logs
 		client_data(id_t client_id);
 	};
 };

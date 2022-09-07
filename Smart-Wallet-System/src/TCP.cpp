@@ -98,8 +98,9 @@ namespace sws::tcp
 	}
 
 	Connection
-	Server::accept() const
+	Server::accept(uint32_t timeout_ms) const
 	{
+		// TODO: Timeout
 		sockaddr_in client  = {};
 		socklen_t client_sz = sizeof(client);
 		int client_desc     = ::accept(this->handle, (sockaddr *) &client, &client_sz);

@@ -43,6 +43,6 @@ namespace sws::tcp
 		~Server();
 
 		Connection
-		accept() const;
+		accept(uint32_t timeout_ms = UINT32_MAX) const;
 	};
 }

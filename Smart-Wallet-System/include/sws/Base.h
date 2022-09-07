@@ -88,7 +88,7 @@ namespace sws
 	class Thread_Safe_Queue
 	{
 		std::mutex mtx;
-		std::queue<std::unique_ptr<T>> q;
+		std::queue<T> q;
 	public:
 		inline bool
 		empty()
@@ -100,14 +100,14 @@ namespace sws
 		}
 
 		inline void
-		push(std::unique_ptr<T> &&val)
+		push(T &&val)
 		{
 			mtx.lock();
 			q.push(std::move(val));
 			mtx.unlock();
 		}
 
-		inline std::unique_ptr<T>
+		inline T
 		pop()
 		{
 			mtx.lock();
