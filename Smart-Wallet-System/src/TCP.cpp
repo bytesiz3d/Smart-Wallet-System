@@ -50,6 +50,7 @@ namespace sws::tcp
 		assert(sent == size);
 	}
 
+	// TODO: Better termination
 	Json
 	Connection::receive_message() const
 	{

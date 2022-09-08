@@ -2,16 +2,18 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <utility>
+
 namespace sws
 {
 class Logger_Default : public ILogger
 	{
 		Logger_Default() = default;
 	public:
-		static ILogger* instance()
+		static std::shared_ptr<ILogger> instance()
 		{
-			static Logger_Default LOG{};
-			return &LOG;
+			static std::shared_ptr<Logger_Default> LOG{new Logger_Default};
+			return LOG;
 		}
 
 		inline void info(std::string_view message) override
@@ -41,11 +43,13 @@ class Logger_Default : public ILogger
 		}
 	};
 
-	Log *
+	std::shared_ptr<Log>
 	Log::instance()
 	{
-		static Log LOG{};
-		return &LOG;
+		static std::shared_ptr<Log> LOG{new Log};
+		if (LOG->logger == nullptr)
+			LOG->set_default_logger();
+		return LOG;
 	}
 
 	void
@@ -55,38 +59,8 @@ class Logger_Default : public ILogger
 	}
 
 	void
-	Log::set_logger(ILogger *_logger)
+	Log::set_logger(std::shared_ptr<ILogger> _logger)
 	{
-		Log::instance()->logger = _logger;
-	}
-
-	void
-	Log::info(std::string_view message)
-	{
-		Log::instance()->logger->info(message);
-	}
-
-	void
-	Log::debug(std::string_view message)
-	{
-		Log::instance()->logger->debug(message);
-	}
-
-	void
-	Log::warning(std::string_view message)
-	{
-		Log::instance()->logger->warning(message);
-	}
-
-	void
-	Log::error(std::string_view message)
-	{
-		Log::instance()->logger->error(message);
-	}
-
-	void
-	Log::fatal(std::string_view message)
-	{
-		Log::instance()->logger->fatal(message);
+		Log::instance()->logger = std::move(_logger);
 	}
 }

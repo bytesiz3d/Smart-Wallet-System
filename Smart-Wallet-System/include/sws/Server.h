@@ -74,11 +74,11 @@ namespace sws
 		std::unordered_map<id_t, Client> active_clients;
 
 		static void
-		listen_for_connections(Server *self);
+		listen_for_connections(std::shared_ptr<Server> self);
 
 		Server();
 	public:
-		static Server *
+		static std::shared_ptr<Server>
 		instance();
 
 		Error

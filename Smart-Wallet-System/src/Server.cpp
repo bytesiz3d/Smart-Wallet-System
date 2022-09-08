@@ -116,7 +116,7 @@ namespace sws
 	}
 
 	void
-	Server::listen_for_connections(Server *self)
+	Server::listen_for_connections(std::shared_ptr<Server> self)
 	{
 		tcp::Server server;
 		while (self->listening_thread_should_exit.test() == false)
@@ -126,11 +126,11 @@ namespace sws
 		}
 	}
 
-	Server *
+	std::shared_ptr<Server>
 	Server::instance()
 	{
-		static Server SERVER{};
-		return &SERVER;
+		static std::shared_ptr<Server> SERVER{new Server};
+		return SERVER;
 	}
 
 	void
