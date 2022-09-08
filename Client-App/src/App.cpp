@@ -1,4 +1,5 @@
 #include "client/App.h"
+#include <sws/Transaction.h>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
@@ -6,9 +7,12 @@
 
 namespace client
 {
-	App::App()
-		: client{}, should_exit{false}
+	void
+	App::wait_for_response(sws::Response_Future &&ft)
 	{
+		ImGui::OpenPopup(response_popup_id);
+		response_future = std::move(ft);
+		last_response = nullptr;
 	}
 
 	void
@@ -21,6 +25,53 @@ namespace client
 			ImGui::DockBuilderRemoveNodeChildNodes(dockspace_id);
 
 			ImGui::DockBuilderDockWindow(CLIENT_MAIN_WINDOW_TITLE, dockspace_id);
+		}
+	}
+
+	void
+	App::response_popup_modal()
+	{
+		response_popup_id = ImGui::GetID(RESPONSE_POPUP_MODAL_TITLE);
+
+		ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+		ImGui::SetNextWindowSize({320.f, 180.f}, ImGuiCond_Appearing);
+		if (ImGui::BeginPopupModal(RESPONSE_POPUP_MODAL_TITLE, nullptr, flags) == false)
+			return;
+		defer { ImGui::EndPopup(); };
+
+		// Waiting or just finished
+		if (response_future.valid())
+		{
+			if (response_future.is_done() == false) // Waiting
+			{
+				ImGui::Text("Waiting for server...");
+				return;
+			}
+			else // Just finished
+			{
+				last_response = response_future.get();
+			}
+		}
+
+		// Finished, data is in last_response
+		if (last_response->error)
+		{
+			auto err_string = fmt::format("ERROR: {}", last_response->error);
+			ImGui::TextColored({1.f, 0.f, 0.f, 1.f}, "%s", err_string.c_str());
+		}
+		else
+		{
+			ImGui::TextColored({0.f, 1.f, 0.f, 1.f}, "SUCCESS");
+
+			// Balance query response, contains amount
+			if (auto query_balance = dynamic_cast<sws::Response_Query_Balance*>(last_response.get()))
+				ImGui::Text("Balance is: %zu", query_balance->get_balance());
+		}
+
+		if (ImGui::Button("Ok"))
+		{
+			last_response = nullptr;
+			ImGui::CloseCurrentPopup();
 		}
 	}
 
@@ -47,10 +98,10 @@ namespace client
 		ImGui::InputInt("##Deposit", &amount, 10, 100);
 
 		if (ImGui::Button("Deposit"))
-			client.deposit(amount);
+			wait_for_response(client.deposit(amount));
 
 		if (ImGui::SameLine(); ImGui::Button("Withdraw"))
-			client.withdraw(amount);
+			wait_for_response(client.withdraw(amount));
 
 		ImGui::Separator();
 
@@ -69,13 +120,22 @@ namespace client
 
 		if (ImGui::Button("Update info"))
 		{
-			client.update_info({
+			sws::Client_Info new_info{
 				.name = name,
 				.age = age,
-				.national_id = std::stoull(national_id),
 				.address = address
-			});
+			};
+			strcpy(new_info.national_id, national_id);
+			wait_for_response(client.update_info(new_info));
 		}
+
+		ImGui::Separator();
+
+		if (ImGui::Button("Undo"))
+			wait_for_response(client.undo());
+
+		if (ImGui::Button("Redo"))
+			wait_for_response(client.redo());
 	}
 
 	void
@@ -91,7 +151,7 @@ namespace client
 			return;
 
 		setup_dockspace();
+		response_popup_modal();
 		main_window();
 	}
-
 }

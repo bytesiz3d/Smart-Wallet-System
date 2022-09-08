@@ -1,6 +1,7 @@
 #include "sws/Message.h"
 #include "sws/Client_Info.h"
 #include "sws/Transaction.h"
+#include "sws/Undo_Redo.h"
 
 namespace sws
 {
@@ -47,6 +48,14 @@ namespace sws
 
 		case KIND_QUERY_BALANCE:
 			req = std::make_unique<Request_Query_Balance>();
+			break;
+
+		case KIND_UNDO:
+			req = std::make_unique<Request_Undo>();
+			break;
+
+		case KIND_REDO:
+			req = std::make_unique<Request_Redo>();
 			break;
 
 		default:
@@ -99,6 +108,14 @@ namespace sws
 
 		case KIND_QUERY_BALANCE:
 			res = std::make_unique<Response_Query_Balance>();
+			break;
+
+		case KIND_UNDO:
+			res = std::make_unique<Response_Undo>();
+			break;
+
+		case KIND_REDO:
+			res = std::make_unique<Response_Redo>();
 			break;
 
 		default:

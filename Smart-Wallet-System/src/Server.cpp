@@ -152,6 +152,7 @@ namespace sws
 		{
 			auto [id, con] = listening_thread_connections->pop();
 			active_clients.emplace(id, std::move(con)); // start a new session
+			active_clients.at(id).data.client_id = id;
 		}
 
 		std::vector<id_t> clients_to_remove;

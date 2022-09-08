@@ -109,7 +109,6 @@ namespace sws::tcp
 	Connection
 	Server::accept(uint32_t timeout_ms) const
 	{
-		// TODO: Timeout
 		pollfd pfd_accept = {.fd = this->handle, .events = POLLIN};
 		if (int ready = ::poll(&pfd_accept, 1, timeout_ms); ready == 0)
 			return Connection{-1};

@@ -1,6 +1,7 @@
 #include "sws/Client_Info.h"
 #include "sws/Server.h"
 #include <utility>
+#include <ctype.h>
 
 namespace sws
 {
@@ -13,8 +14,14 @@ namespace sws
 		if (age < 18 || age > 120)
 			return Error{"Age is out of bounds"};
 
-		if (national_id / NATIONAL_ID_MAX)
+		if (strlen(national_id) != NATIONAL_ID_LEN)
 			return Error{"Invalid national id"};
+
+		for (int i = 0; i < NATIONAL_ID_LEN; i++)
+		{
+			if (isdigit(national_id[i]) == false)
+				return Error{"Invalid national id"};
+		}
 
 		if (address.empty())
 			return Error{"Address is empty"};
@@ -49,10 +56,13 @@ namespace sws
 	Request_Update_Info::deserialize(const Json &json)
 	{
 		IRequest::deserialize(json);
-		client_info.name        = json["request"]["name"];
-		client_info.age         = json["request"]["age"];
-		client_info.national_id = json["request"]["national_id"];
-		client_info.address     = json["request"]["address"];
+		client_info.name = json["request"]["name"];
+		client_info.age  = json["request"]["age"];
+
+		std::string n_id = json["request"]["national_id"];
+		strcpy(client_info.national_id, n_id.c_str());
+
+		client_info.address = json["request"]["address"];
 	}
 
 	std::unique_ptr<ICommand>
@@ -111,8 +121,8 @@ namespace sws
 		if (old_info.age != new_info.age)
 			description += fmt::format(" age: {} -> {}", old_info.age, new_info.age);
 
-		if (old_info.national_id != new_info.national_id)
-			description += fmt::format(" national_id: {:014} -> {:014}", old_info.national_id, new_info.national_id);
+		if (strcmp(old_info.national_id, new_info.national_id) != 0)
+			description += fmt::format(" national_id: {} -> {}", old_info.national_id, new_info.national_id);
 
 		if (old_info.address != new_info.address)
 			description += fmt::format(" address: {} -> {}", old_info.address, new_info.address);

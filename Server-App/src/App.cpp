@@ -105,8 +105,7 @@ namespace server
 				ImGui::InputText("Name", client_data.name.data(), client_data.name.size());
 				ImGui::InputScalar("Age", ImGuiDataType_U8, &client_data.age);
 
-				auto national_id_str = fmt::format("{:014}", client_data.national_id);
-				ImGui::InputText("National ID", national_id_str.data(), national_id_str.size());
+				ImGui::InputText("National ID", client_data.national_id, sizeof(client_data.national_id));
 
 				ImGui::InputText("Address", client_data.address.data(), client_data.address.size());
 				ImGui::InputScalar("Balance", ImGuiDataType_U32, &client_data.balance);

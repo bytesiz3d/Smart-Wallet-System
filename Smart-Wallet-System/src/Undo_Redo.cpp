@@ -43,7 +43,7 @@ namespace sws
 	}
 
 	Request_Redo::Request_Redo()
-		: IRequest{KIND_UNDO}
+		: IRequest{KIND_REDO}
 	{
 	}
 
@@ -54,12 +54,12 @@ namespace sws
 	}
 
 	Response_Redo::Response_Redo()
-		: IResponse{KIND_UNDO, Error{}}
+		: IResponse{KIND_REDO, Error{}}
 	{
 	}
 
 	Response_Redo::Response_Redo(Error _error)
-		: IResponse{KIND_UNDO, std::move(_error)}
+		: IResponse{KIND_REDO, std::move(_error)}
 	{
 	}
 

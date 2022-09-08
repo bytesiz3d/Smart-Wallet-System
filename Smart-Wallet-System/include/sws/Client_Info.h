@@ -10,8 +10,8 @@ namespace sws
 		std::string name;
 		uint8_t age;
 
-		constexpr static uint64_t NATIONAL_ID_MAX = uint64_t(1e15); // 14 digits
-		uint64_t national_id;
+		static constexpr size_t NATIONAL_ID_LEN = 14;
+		char national_id[NATIONAL_ID_LEN + 1];
 
 		std::string address;
 

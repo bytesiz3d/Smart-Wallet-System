@@ -16,7 +16,7 @@ namespace gui
 		Handle window;
 		Handle context;
 
-		bool should_close;
+		bool should_close{false};
 
 		void
 		poll_events(IApp *app);

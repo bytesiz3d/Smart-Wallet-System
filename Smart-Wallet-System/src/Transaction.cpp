@@ -204,12 +204,10 @@ namespace sws
 		balance = json["response"]["balance"];
 	}
 
-	Result<uint64_t>
-	Response_Query_Balance::result()
+	uint64_t
+	Response_Query_Balance::get_balance()
 	{
-		Result<uint64_t> res = error;
-		res.val = balance;
-		return res;
+		return balance;
 	}
 
 	Command_Query_Balance::Command_Query_Balance(id_t client_id)

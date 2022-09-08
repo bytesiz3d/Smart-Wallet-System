@@ -125,8 +125,8 @@ namespace sws
 		void
 		deserialize(const Json &json) override;
 
-		Result<uint64_t>
-		result();
+		uint64_t
+		get_balance();
 	};
 
 	class Command_Query_Balance : public ICommand
