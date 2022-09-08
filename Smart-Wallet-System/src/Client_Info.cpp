@@ -99,15 +99,17 @@ namespace sws
 	void
 	Command_Update_Info::undo(Server *server)
 	{
-		auto [old, err] = server->update_info(client_id, old_info);
-		assert(err == false);
+		auto [_, err] = server->update_info(client_id, old_info);
+		if (err)
+			Log::error("{}", err);
 	}
 
 	void
 	Command_Update_Info::redo(Server *server)
 	{
-		auto [old, err] = server->update_info(client_id, new_info);
-		assert(err == false);
+		auto [_, err] = server->update_info(client_id, new_info);
+		if (err)
+			Log::error("{}", err);
 	}
 
 	std::string

@@ -4,7 +4,7 @@
 int
 main()
 {
-	gui::Window window{"Smart Wallet System - App", 1280, 720};
+	gui::Window window{"Smart Wallet System - Server", 1280, 720};
 	server::App server{};
 	window.start_loop(&server);
 

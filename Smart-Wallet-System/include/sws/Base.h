@@ -32,7 +32,6 @@ namespace sws
 		fatal(std::string_view message) = 0;
 	};
 
-	// TODO: Improve this
 	class Log
 	{
 		ILogger* logger;

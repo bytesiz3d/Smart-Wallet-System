@@ -5,7 +5,6 @@
 
 namespace sws
 {
-	// TODO: Singleton
 	class Response_Future : public std::future<std::unique_ptr<IResponse>>
 	{
 	public:
@@ -24,6 +23,7 @@ namespace sws
 		}
 	};
 
+	// TODO: Singleton
 	class Client
 	{
 		std::shared_ptr<tcp::Client> tcp_client;

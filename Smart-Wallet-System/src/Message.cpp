@@ -29,6 +29,9 @@ namespace sws
 	std::unique_ptr<IRequest>
 	IRequest::deserialize_base(const Json &json)
 	{
+		if (json.contains("kind") == false)
+			return nullptr;
+
 		KIND kind = json["kind"];
 		std::unique_ptr<IRequest> req{};
 
@@ -89,6 +92,9 @@ namespace sws
 	std::unique_ptr<IResponse>
 	IResponse::deserialize_base(const Json &json)
 	{
+		if (json.contains("kind") == false)
+			return nullptr;
+
 		KIND kind = json["kind"];
 		std::unique_ptr<IResponse> res{};
 
@@ -124,5 +130,10 @@ namespace sws
 
 		res->deserialize(json);
 		return res;
+	}
+
+	Response_Timeout::Response_Timeout()
+		: IResponse{KIND_TIMEOUT, Error{"Server Timeout"}}
+	{
 	}
 }

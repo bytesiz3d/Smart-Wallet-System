@@ -20,6 +20,7 @@ namespace sws
 			KIND_QUERY_BALANCE,
 			KIND_UNDO,
 			KIND_REDO,
+			KIND_TIMEOUT,
 		};
 		IMessage(KIND _kind);
 
@@ -66,5 +67,11 @@ namespace sws
 
 		static std::unique_ptr<IResponse>
 		deserialize_base(const Json &json);
+	};
+
+	class Response_Timeout : public IResponse
+	{
+	public:
+		Response_Timeout();
 	};
 }

@@ -46,7 +46,7 @@ class Logger_Default : public ILogger
 	Log*
 	Log::instance()
 	{
-		static Log LOG{};
+		static thread_local Log LOG{};
 		if (LOG.logger == nullptr)
 			LOG.logger = Logger_Default::instance();
 		return &LOG;
