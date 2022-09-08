@@ -2,9 +2,10 @@
 
 namespace gui
 {
-	class IRenderable
+	class IApp
 	{
 	public:
+		virtual void exit() = 0;
 		virtual void render_frame() = 0;
 	};
 
@@ -18,13 +19,13 @@ namespace gui
 		bool should_close;
 
 		void
-		poll_events();
+		poll_events(IApp *app);
 
 	public:
 		Window(const char *title, int width, int height);
 
 		void
-		start_loop(IRenderable *ui);
+		start_loop(IApp *ui);
 
 		~Window();
 	};

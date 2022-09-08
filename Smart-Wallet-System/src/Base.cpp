@@ -48,7 +48,7 @@ class Logger_Default : public ILogger
 	{
 		static std::shared_ptr<Log> LOG{new Log};
 		if (LOG->logger == nullptr)
-			LOG->set_default_logger();
+			LOG->logger = Logger_Default::instance();
 		return LOG;
 	}
 

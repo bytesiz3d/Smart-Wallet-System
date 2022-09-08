@@ -1,17 +1,22 @@
 #include "sws/TCP.h"
+#include "sws/Base.h"
 
-#include <arpa/inet.h>
 #include <assert.h>
-#include <stdio.h>
+#include <arpa/inet.h>
+#include <sys/poll.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 namespace sws::tcp
 {
-	static const sockaddr_in SERVER_SOCKET = {
-		.sin_family = AF_INET,
-		.sin_port   = ::htons(8888),
-		.sin_addr   = {.s_addr = ::inet_addr("127.0.0.1")},
+	inline static sockaddr_in
+	SERVER_SOCKET()
+	{
+		return sockaddr_in{
+			.sin_family = AF_INET,
+			.sin_port   = ::htons(8888),
+			.sin_addr   = {.s_addr = ::inet_addr("127.0.0.1")}, // LOCALHOST
+		};
 	};
 
 	Connection::Connection(int _handle)
@@ -41,7 +46,7 @@ namespace sws::tcp
 	Connection::send_message(const Json &json) const
 	{
 		std::string msg = json.dump();
-		size_t size = msg.length();
+		size_t size     = msg.length();
 
 		int sent = ::send(this->handle, &size, sizeof(size), 0);
 		assert(sent == sizeof(size));
@@ -72,7 +77,7 @@ namespace sws::tcp
 	{
 		assert(this->handle >= 0);
 
-		sockaddr_in server = SERVER_SOCKET;
+		sockaddr_in server = SERVER_SOCKET();
 
 		int connect_result = ::connect(this->handle, (sockaddr *) &server, sizeof(server));
 		assert(connect_result >= 0);
@@ -83,7 +88,7 @@ namespace sws::tcp
 		this->handle = ::socket(AF_INET, SOCK_STREAM, 0);
 		assert(this->handle >= 0);
 
-		sockaddr_in server = SERVER_SOCKET;
+		sockaddr_in server = SERVER_SOCKET();
 
 		int bind_result = ::bind(this->handle, (sockaddr *) &server, sizeof(server));
 		assert(bind_result >= 0);
@@ -94,7 +99,8 @@ namespace sws::tcp
 
 	Server::~Server()
 	{
-		printf("%d DYING\n", this->handle); // DEBUG
+		// TODO: Debug this
+		Log::debug("{} DYING", this->handle);
 		::close(this->handle);
 	}
 
@@ -102,11 +108,13 @@ namespace sws::tcp
 	Server::accept(uint32_t timeout_ms) const
 	{
 		// TODO: Timeout
-		sockaddr_in client  = {};
-		socklen_t client_sz = sizeof(client);
-		int client_desc     = ::accept(this->handle, (sockaddr *) &client, &client_sz);
-		assert(client_desc >= 0);
+		pollfd pfd_accept = {.fd = this->handle, .events = POLLIN};
+		if (int ready = ::poll(&pfd_accept, 1, timeout_ms); ready == 0)
+			return Connection{-1};
 
-		return Connection(client_desc);
+		int client_handle = ::accept(this->handle, nullptr, nullptr);
+		assert(client_handle >= 0);
+
+		return Connection{client_handle};
 	}
 }

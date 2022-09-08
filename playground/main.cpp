@@ -1,7 +1,7 @@
 #include <gui/Window.h>
 #include <imgui.h>
 
-struct UI : public gui::IRenderable
+struct UI : public gui::IApp
 {
 	void
 	render_frame() override
@@ -14,7 +14,7 @@ struct UI : public gui::IRenderable
 int
 main(int, char **)
 {
-	gui::Window window("Playground", 1280, 720);
+	gui::Window window{"Playground", 1280, 720};
 
 	UI ui{};
 

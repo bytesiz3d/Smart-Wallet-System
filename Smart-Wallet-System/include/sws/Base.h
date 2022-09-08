@@ -171,4 +171,30 @@ namespace sws
 			return front;
 		}
 	};
+
+	class Thread_With_Exit_Flag
+	{
+		std::shared_ptr<std::atomic_flag> should_exit;
+		std::thread thread;
+	public:
+		template<typename TCallable, typename... TArgs>
+		explicit Thread_With_Exit_Flag(TCallable &&fn, TArgs &&...args)
+			: should_exit{std::make_shared<std::atomic_flag>()},
+			  thread{std::forward<TCallable>(fn), std::forward<TArgs>(args)..., should_exit}
+		{
+		}
+
+		void
+		exit()
+		{
+			should_exit->test_and_set();
+			if (thread.joinable())
+				thread.join();
+		}
+
+		~Thread_With_Exit_Flag()
+		{
+			exit();
+		}
+	};
 }

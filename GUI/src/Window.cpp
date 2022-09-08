@@ -61,20 +61,20 @@ namespace gui
 	}
 
 	void
-	Window::start_loop(IRenderable *ui)
+	Window::start_loop(IApp *app)
 	{
-		constexpr ImVec4 CLEAR_COLOR(0.45f, 0.55f, 0.60f, 1.00f);
+		constexpr ImVec4 CLEAR_COLOR{0.04f, 0.07f, 0.10f, 1.00f};
 
 		while (this->should_close == false)
 		{
-			this->poll_events();
+			this->poll_events(app);
 
 			// Start the Dear ImGui frame
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplSDL2_NewFrame();
 			ImGui::NewFrame();
 
-			ui->render_frame();
+			app->render_frame();
 
 			ImGui::Render();
 
@@ -89,7 +89,7 @@ namespace gui
 	}
 
 	void
-	Window::poll_events()
+	Window::poll_events(IApp *app)
 	{
 		SDL_Event event = {};
 		while (SDL_PollEvent(&event))
@@ -104,6 +104,9 @@ namespace gui
 				event.window.windowID == SDL_GetWindowID((SDL_Window*)this->window))
 				this->should_close = true;
 		}
+
+		if (this->should_close)
+			app->exit();
 	}
 
 	Window::~Window()

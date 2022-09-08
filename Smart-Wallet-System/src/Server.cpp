@@ -3,10 +3,11 @@
 namespace sws
 {
 	void
-	Session::serve(tcp::Connection con, std::shared_ptr<Request_Queue> requests, std::shared_ptr<Response_Queue> responses)
+	Session::serve(tcp::Connection con, std::shared_ptr<Request_Queue> requests, std::shared_ptr<Response_Queue> responses, std::shared_ptr<std::atomic_flag> should_exit)
 	{
+		// TODO: Better termination
 		// TODO: send ack?
-		while (true)
+		while (should_exit->test() == false)
 		{
 			auto msg = con.receive_message();
 			if (msg.empty())
@@ -24,13 +25,14 @@ namespace sws
 	}
 
 	Session::Session(tcp::Connection &&con)
-		: serving_thread{serve, std::move(con), requests, responses}
+		: requests{std::make_shared<Request_Queue>()}, responses{std::make_shared<Response_Queue>()},
+		  serving_thread{serve, std::move(con), requests, responses}
 	{
 	}
 
 	Session::~Session()
 	{
-		wait_for_disconnect();
+		disconnect();
 	}
 
 	std::unique_ptr<IRequest>
@@ -49,9 +51,9 @@ namespace sws
 	}
 
 	void
-	Session::wait_for_disconnect()
+	Session::disconnect()
 	{
-		serving_thread.join();
+		serving_thread.exit();
 	}
 
 	Server::Client::Client(tcp::Connection &&con)
@@ -60,7 +62,8 @@ namespace sws
 	}
 
 	Server::Server()
-		: listening_thread{listen_for_connections, std::shared_ptr<Server>(this)}
+		: listening_thread_connections{std::make_shared<Connection_Queue>()},
+		  listening_thread{listen_for_connections, listening_thread_connections}
 	{
 	}
 
@@ -116,13 +119,15 @@ namespace sws
 	}
 
 	void
-	Server::listen_for_connections(std::shared_ptr<Server> self)
+	Server::listen_for_connections(std::shared_ptr<Connection_Queue> queue, std::shared_ptr<std::atomic_flag> should_exit)
 	{
-		tcp::Server server;
-		while (self->listening_thread_should_exit.test() == false)
+		tcp::Server server{};
+		id_t next_client_id = 0;
+		while (should_exit->test() == false)
 		{
-			auto connection = server.accept();
-			self->listening_thread_connections.push({self->next_client_id++, std::move(connection)});
+			auto connection = server.accept(200); // timeout = 200 ms
+			if (connection.is_valid())
+				queue->push({next_client_id++, std::move(connection)});
 		}
 	}
 
@@ -137,9 +142,9 @@ namespace sws
 	Server::update_state()
 	{
 		// Start sessions
-		while (listening_thread_connections.empty() == false)
+		while (listening_thread_connections->empty() == false)
 		{
-			auto [id, con] = listening_thread_connections.pop();
+			auto [id, con] = listening_thread_connections->pop();
 			active_clients.emplace(id, std::move(con)); // start a new session
 		}
 
@@ -199,5 +204,11 @@ namespace sws
 		auto &client = active_clients.at(client_id);
 
 		return client.log.redo_next_command(this);
+	}
+
+	void
+	Server::stop_listening_for_connections()
+	{
+		listening_thread.exit();
 	}
 }
