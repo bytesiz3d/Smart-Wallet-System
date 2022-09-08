@@ -80,7 +80,11 @@ namespace sws::tcp
 		sockaddr_in server = SERVER_SOCKET();
 
 		int connect_result = ::connect(this->handle, (sockaddr *) &server, sizeof(server));
-		assert(connect_result >= 0);
+		if (connect_result < 0)
+		{ // create an invalid client
+			::close(this->handle);
+			this->handle = -1;
+		}
 	}
 
 	Server::Server()
@@ -99,8 +103,6 @@ namespace sws::tcp
 
 	Server::~Server()
 	{
-		// TODO: Debug this
-		Log::debug("{} DYING", this->handle);
 		::close(this->handle);
 	}
 

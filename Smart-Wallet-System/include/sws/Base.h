@@ -9,6 +9,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <future>
 #include <type_traits>
 #include <utility>
 
@@ -31,12 +32,13 @@ namespace sws
 		fatal(std::string_view message) = 0;
 	};
 
+	// TODO: Improve this
 	class Log
 	{
-		std::shared_ptr<ILogger> logger;
+		ILogger* logger;
 		Log() = default;
 
-		static std::shared_ptr<Log>
+		static Log*
 		instance();
 
 	public:
@@ -44,7 +46,7 @@ namespace sws
 		set_default_logger();
 
 		static void
-		set_logger(std::shared_ptr<ILogger> _logger);
+		set_logger(ILogger *_logger);
 
 		template<typename... TArgs>
 		static void
@@ -175,12 +177,12 @@ namespace sws
 	class Thread_With_Exit_Flag
 	{
 		std::shared_ptr<std::atomic_flag> should_exit;
-		std::thread thread;
+		std::future<void> future;
 	public:
 		template<typename TCallable, typename... TArgs>
 		explicit Thread_With_Exit_Flag(TCallable &&fn, TArgs &&...args)
 			: should_exit{std::make_shared<std::atomic_flag>()},
-			  thread{std::forward<TCallable>(fn), std::forward<TArgs>(args)..., should_exit}
+			  future{std::async(std::forward<TCallable>(fn), std::forward<TArgs>(args)..., should_exit)}
 		{
 		}
 
@@ -188,13 +190,50 @@ namespace sws
 		exit()
 		{
 			should_exit->test_and_set();
-			if (thread.joinable())
-				thread.join();
+			if (future.valid())
+				future.wait();
+		}
+
+		bool
+		is_done()
+		{
+			auto status = future.wait_for(std::chrono::seconds{0});
+			return status != std::future_status::timeout;
 		}
 
 		~Thread_With_Exit_Flag()
 		{
 			exit();
+		}
+	};
+
+	template <typename F>
+	struct Defer
+	{
+		F f;
+		Defer(F f) : f(f) {}
+		~Defer() { f(); }
+	};
+
+	#define sws_DEFER_1(x, y) x##y
+	#define sws_DEFER_2(x, y) sws_DEFER_1(x, y)
+	#define sws_DEFER_3(x)    sws_DEFER_2(x, __COUNTER__)
+	#define defer sws::Defer sws_DEFER_3(_defer_) = [&]()
+}
+
+namespace fmt
+{
+	template<>
+	struct formatter<sws::Error>
+	{
+		template <typename ParseContext>
+		constexpr auto parse(ParseContext &ctx) { return ctx.begin(); }
+
+		template <typename FormatContext>
+		auto format(const sws::Error &err, FormatContext &ctx) {
+			if (err.msg.empty())
+				return ctx.out();
+			return format_to(ctx.out(), "{}", err.msg);
 		}
 	};
 }

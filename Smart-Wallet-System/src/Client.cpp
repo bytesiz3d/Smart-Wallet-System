@@ -66,4 +66,10 @@ namespace sws
 		Request_Redo redo{};
 		return std::async(send_request, tcp_client, redo.serialize());
 	}
+
+	bool
+	Client::has_valid_connection()
+	{
+		return tcp_client->is_valid();
+	}
 }

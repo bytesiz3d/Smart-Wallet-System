@@ -56,8 +56,14 @@ namespace sws
 		serving_thread.exit();
 	}
 
+	bool
+	Session::client_disconnected()
+	{
+		return serving_thread.is_done();
+	}
+
 	Server::Client::Client(tcp::Connection &&con)
-		: session{std::move(con)}
+		: data{}, session{std::move(con)}, log{}
 	{
 	}
 
@@ -99,8 +105,8 @@ namespace sws
 			return Error{"Client not found"};
 		auto &client = active_clients.at(client_id);
 
-		if (new_info.is_valid() == false)
-			return Error{"Invalid info"};
+		if (auto err = new_info.is_valid())
+			return Error{"Invalid info: {}", err};
 
 		auto info     = static_cast<Client_Info *>(&client.data);
 		auto old_info = *info;
@@ -148,9 +154,10 @@ namespace sws
 			active_clients.emplace(id, std::move(con)); // start a new session
 		}
 
-		// See if there's any requests
+		std::vector<id_t> clients_to_remove;
 		for (auto &[id, client] : active_clients)
 		{
+			// See if there's any requests
 			while (true)
 			{
 				auto req = client.session.receive_request();
@@ -160,7 +167,14 @@ namespace sws
 				auto res = client.log.execute_new_command(this, req->command(id));
 				client.session.send_response(std::move(res));
 			}
+
+			// See if there's any disconnects
+			if (client.session.client_disconnected())
+				clients_to_remove.push_back(id);
 		}
+
+		for (auto id: clients_to_remove)
+			active_clients.erase(id);
 	}
 
 	std::vector<id_t>

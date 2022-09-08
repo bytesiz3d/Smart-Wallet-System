@@ -5,6 +5,7 @@
 
 namespace sws
 {
+	// TODO: Singleton
 	class Client
 	{
 		std::shared_ptr<tcp::Client> tcp_client;
@@ -32,5 +33,8 @@ namespace sws
 
 		std::future<Error>
 		redo();
+
+		bool
+		has_valid_connection();
 	};
 }

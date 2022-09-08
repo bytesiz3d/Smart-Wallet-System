@@ -39,6 +39,9 @@ namespace sws
 		void
 		send_response(std::unique_ptr<IResponse> &&response);
 
+		bool
+		client_disconnected();
+
 		void
 		disconnect();
 	};

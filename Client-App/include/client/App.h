@@ -1,31 +1,23 @@
 #pragma once
-
-#include <memory>
+#include <sws/Client.h>
 #include <gui/Window.h>
-#include <sws/Server.h>
 #include <imgui.h>
 
-namespace server
+namespace client
 {
-	// TODO: Singleton
 	class App : public gui::IApp
 	{
 		bool should_exit;
-		id_t active_client_id;
-		std::shared_ptr<sws::Server> server;
+		sws::Client client;
 
-		constexpr static auto CLIENTS_LIST_WINDOW_TITLE = "Clients";
-		constexpr static auto CLIENT_DATA_WINDOW_TITLE = "Client Data";
+		constexpr static auto CLIENT_MAIN_WINDOW_TITLE = "Client";
 		constexpr static ImGuiWindowFlags DOCKING_WINDOW_FLAGS = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 
 		void
 		setup_dockspace();
 
 		void
-		clients_list_window();
-
-		void
-		clients_data_window();
+		main_window();
 
 	public:
 		App();

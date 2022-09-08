@@ -66,7 +66,7 @@ namespace sws
 		if (auto err = deposit.is_valid())
 			return std::make_unique<Response_Deposit>(err);
 
-		auto err = server->withdraw(client_id, deposit.amount);
+		auto err = server->deposit(client_id, deposit.amount);
 		return std::make_unique<Response_Deposit>(err);
 	}
 

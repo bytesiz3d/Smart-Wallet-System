@@ -10,10 +10,10 @@ class Logger_Default : public ILogger
 	{
 		Logger_Default() = default;
 	public:
-		static std::shared_ptr<ILogger> instance()
+		static ILogger* instance()
 		{
-			static std::shared_ptr<Logger_Default> LOG{new Logger_Default};
-			return LOG;
+			static thread_local std::unique_ptr<Logger_Default> LOG{new Logger_Default};
+			return LOG.get();
 		}
 
 		inline void info(std::string_view message) override
@@ -43,13 +43,13 @@ class Logger_Default : public ILogger
 		}
 	};
 
-	std::shared_ptr<Log>
+	Log*
 	Log::instance()
 	{
-		static std::shared_ptr<Log> LOG{new Log};
-		if (LOG->logger == nullptr)
-			LOG->logger = Logger_Default::instance();
-		return LOG;
+		static Log LOG{};
+		if (LOG.logger == nullptr)
+			LOG.logger = Logger_Default::instance();
+		return &LOG;
 	}
 
 	void
@@ -59,8 +59,8 @@ class Logger_Default : public ILogger
 	}
 
 	void
-	Log::set_logger(std::shared_ptr<ILogger> _logger)
+	Log::set_logger(ILogger *_logger)
 	{
-		Log::instance()->logger = std::move(_logger);
+		Log::instance()->logger = _logger;
 	}
 }

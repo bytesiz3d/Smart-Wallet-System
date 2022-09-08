@@ -8,6 +8,11 @@ struct UI : public gui::IApp
 	{
 		ImGui::Button("Yo");
 	}
+
+	void
+	exit() override
+	{
+	}
 };
 
 // Main code
@@ -15,9 +20,7 @@ int
 main(int, char **)
 {
 	gui::Window window{"Playground", 1280, 720};
-
 	UI ui{};
-
 	window.start_loop(&ui);
 
 	return 0;
