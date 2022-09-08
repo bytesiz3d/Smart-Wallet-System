@@ -44,7 +44,7 @@ namespace sws
 	{
 		Transaction deposit;
 	public:
-		explicit Command_Deposit(id_t client_id, Transaction _deposit);
+		Command_Deposit(id_t client_id, Transaction _deposit);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
@@ -88,7 +88,7 @@ namespace sws
 	{
 		Transaction withdrawal;
 	public:
-		explicit Command_Withdrawal(id_t client_id, Transaction _withdrawal);
+		Command_Withdrawal(id_t client_id, Transaction _withdrawal);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
@@ -106,7 +106,7 @@ namespace sws
 	class Request_Query_Balance : public IRequest
 	{
 	public:
-		explicit Request_Query_Balance();
+		Request_Query_Balance();
 
 		std::unique_ptr<ICommand>
 		command(id_t client_id) override;

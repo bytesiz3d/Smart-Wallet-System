@@ -28,6 +28,25 @@ namespace sws
 
 		virtual std::string
 		describe() = 0;
+
+		virtual bool
+		is_meta() const;
+	};
+
+	class IMetaCommand : public ICommand
+	{
+	protected:
+		explicit IMetaCommand(id_t _client_id);
+
+	public:
+		void
+		undo(Server *) override final;
+
+		void
+		redo(Server *) override final;
+
+		bool
+		is_meta() const override final;
 	};
 
 	class Command_Log
@@ -39,10 +58,10 @@ namespace sws
 		std::unique_ptr<IResponse>
 		execute_new_command(Server *server, std::unique_ptr<ICommand> &&command);
 
-		void
+		Error
 		undo_prev_command(Server *server);
 
-		void
+		Error
 		redo_next_command(Server *server);
 
 		std::vector<std::string>

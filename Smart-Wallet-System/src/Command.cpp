@@ -10,13 +10,40 @@ namespace sws
 	{
 	}
 
+	bool
+	ICommand::is_meta() const
+	{
+		return false;
+	}
+
+	IMetaCommand::IMetaCommand(id_t _client_id)
+		: ICommand{_client_id}
+	{
+	}
+
+	void
+	IMetaCommand::undo(Server *)
+	{ // do nothing
+	}
+
+	void
+	IMetaCommand::redo(Server *)
+	{ // do nothing
+	}
+
+	bool
+	IMetaCommand::is_meta() const
+	{
+		return true;
+	}
+
 	std::unique_ptr<IResponse>
 	Command_Log::execute_new_command(Server *server, std::unique_ptr<ICommand> &&command)
 	{
 		// Execute command
 		auto res = command->execute(server);
 
-		if (res->error == false)
+		if (res->error == false && command->is_meta() == false)
 		{
 			// Any command after next_command should be deleted
 			commands.resize(next_command);
@@ -28,28 +55,24 @@ namespace sws
 		return res;
 	}
 
-	void
+	Error
 	Command_Log::undo_prev_command(Server *server)
 	{
 		if (next_command == 0)
-		{
-			Log::debug("Undoing with no commands left");
-			return;
-		}
+			return Error{"Undoing with no commands left"};
 
 		commands[--next_command]->undo(server);
+		return Error{};
 	}
 
-	void
+	Error
 	Command_Log::redo_next_command(Server *server)
 	{
 		if (next_command == commands.size())
-		{
-			Log::debug("Redoing with no commands left");
-			return;
-		}
+			return Error{"Redoing with no commands left"};
 
 		commands[next_command++]->redo(server);
+		return Error{};
 	}
 
 	std::vector<std::string>

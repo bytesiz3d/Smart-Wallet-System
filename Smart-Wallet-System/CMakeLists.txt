@@ -8,6 +8,7 @@ add_library(Smart-Wallet-System
 	include/sws/Command.h
 	include/sws/Client_Info.h
 	include/sws/Transaction.h
+	include/sws/Undo_Redo.h
 	include/sws/Server.h
 	include/sws/Client.h
 
@@ -17,6 +18,7 @@ add_library(Smart-Wallet-System
 	src/Command.cpp
 	src/Client_Info.cpp
 	src/Transaction.cpp
+	src/Undo_Redo.cpp
 	src/Server.cpp
 	src/Client.cpp
 	)

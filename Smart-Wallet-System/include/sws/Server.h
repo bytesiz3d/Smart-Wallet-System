@@ -93,6 +93,12 @@ namespace sws
 		Result<uint64_t>
 		query_balance(id_t client_id);
 
+		Error
+		undo(id_t client_id);
+
+		Error
+		redo(id_t client_id);
+
 		void
 		update_state();
 

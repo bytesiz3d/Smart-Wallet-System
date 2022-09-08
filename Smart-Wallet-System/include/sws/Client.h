@@ -27,7 +27,6 @@ namespace sws
 		std::future<Result<uint64_t>>
 		query_balance();
 
-		// TODO: UNDO/REDO REQUESTS
 		std::future<Error>
 		undo();
 

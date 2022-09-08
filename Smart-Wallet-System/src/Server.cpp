@@ -60,7 +60,7 @@ namespace sws
 	}
 
 	Server::Server()
-		: listening_thread{listen_for_connections, this}
+		: listening_thread{listen_for_connections, std::shared_ptr<Server>(this)}
 	{
 	}
 
@@ -137,7 +137,7 @@ namespace sws
 	Server::update_state()
 	{
 		// Start sessions
-		while (listening_thread_connections.empty())
+		while (listening_thread_connections.empty() == false)
 		{
 			auto [id, con] = listening_thread_connections.pop();
 			active_clients.emplace(id, std::move(con)); // start a new session
@@ -179,5 +179,25 @@ namespace sws
 		data.logs                          = client.log.describe_commands();
 
 		return data;
+	}
+
+	Error
+	Server::undo(id_t client_id)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = active_clients.at(client_id);
+
+		return client.log.undo_prev_command(this);
+	}
+
+	Error
+	Server::redo(id_t client_id)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = active_clients.at(client_id);
+
+		return client.log.redo_next_command(this);
 	}
 }

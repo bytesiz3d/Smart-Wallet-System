@@ -18,6 +18,8 @@ namespace sws
 			KIND_DEPOSIT,
 			KIND_WITHDRAWAL,
 			KIND_QUERY_BALANCE,
+			KIND_UNDO,
+			KIND_REDO,
 		};
 		IMessage(KIND _kind);
 

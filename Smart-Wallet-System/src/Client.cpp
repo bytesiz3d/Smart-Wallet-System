@@ -1,5 +1,6 @@
 #include "sws/Client.h"
 #include "sws/Transaction.h"
+#include "sws/Undo_Redo.h"
 
 namespace sws
 {
@@ -50,5 +51,19 @@ namespace sws
 			res.deserialize(res_json);
 			return res.result();
 		});
+	}
+
+	std::future<Error>
+	Client::undo()
+	{
+		Request_Undo undo{};
+		return std::async(send_request, tcp_client, undo.serialize());
+	}
+
+	std::future<Error>
+	Client::redo()
+	{
+		Request_Redo redo{};
+		return std::async(send_request, tcp_client, redo.serialize());
 	}
 }
