@@ -18,7 +18,3 @@ target_link_libraries(GUI
 	PUBLIC
 		imgui
 )
-
-include(GenerateExportHeader)
-generate_export_header(GUI
-	EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/gui/Exports.h")

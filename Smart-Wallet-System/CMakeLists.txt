@@ -30,7 +30,3 @@ target_include_directories(Smart-Wallet-System
 target_link_libraries(Smart-Wallet-System
 	PUBLIC nlohmann::json fmt)
 
-include(GenerateExportHeader)
-generate_export_header(Smart-Wallet-System
-	EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/sws/Exports.h")
-

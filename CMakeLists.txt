@@ -21,6 +21,3 @@ add_subdirectory(Smart-Wallet-System)
 add_subdirectory(GUI)
 add_subdirectory(Server-App)
 add_subdirectory(Client-App)
-
-# Playground
-add_subdirectory(playground)
