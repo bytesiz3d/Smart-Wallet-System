@@ -73,12 +73,12 @@ namespace sws
 		: listening_thread_connections{std::make_shared<Connection_Queue>()},
 		  listening_thread{listen_for_connections, listening_thread_connections}
 	{
-		load_registered_clients("server.json");
+		load_registered_clients(persistent_storage_path());
 	}
 
 	Server::~Server()
 	{
-		save_registered_clients("server.json");
+		save_registered_clients(persistent_storage_path());
 	}
 
 	Error
@@ -292,6 +292,21 @@ namespace sws
 		listening_thread.exit();
 	}
 
+
+	std::string
+	Server::persistent_storage_path()
+	{
+		char *os_str = secure_getenv("XDG_CONFIG_HOME");
+		if (os_str && ::strlen(os_str) > 0)
+			return fmt::format("{}/server.json", os_str);
+
+		os_str = secure_getenv("HOME");
+		if (os_str && ::strlen(os_str) > 0)
+			return fmt::format("{}/server.json", os_str);
+
+		return "~/server.json";
+	}
+
 	void
 	Server::load_registered_clients(std::string_view path)
 	{
@@ -357,7 +372,8 @@ namespace sws
 
 		for (auto &[_, client] : registered_clients)
 		{
-			int exp = int(log10(client.balance));
+			auto b = client.balance == 0 ? 1 : client.balance;
+			int exp = int(log10(b));
 			if (exp > EXP_LAST)
 				exp = EXP_LAST;
 			data.second[exp]++;

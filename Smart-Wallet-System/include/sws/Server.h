@@ -81,6 +81,9 @@ namespace sws
 		void
 		start_session(tcp::Connection &&con);
 
+		static std::string
+		persistent_storage_path();
+
 		void
 		load_registered_clients(std::string_view path);
 
