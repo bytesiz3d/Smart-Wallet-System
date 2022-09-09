@@ -146,11 +146,10 @@ namespace client
 
 		if (ImGui::Button("Update info"))
 		{
-			sws::Client_Info new_info{
-				.name = name,
-				.age = age,
-				.address = address
-			};
+			sws::Client_Info new_info{};
+			new_info.name    = name;
+			new_info.age     = age;
+			new_info.address = address;
 			strcpy(new_info.national_id, national_id);
 			wait_for_response(client.update_info(new_info));
 		}

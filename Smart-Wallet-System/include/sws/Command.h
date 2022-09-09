@@ -81,8 +81,11 @@ namespace sws
 		std::vector<std::string>
 		describe_commands();
 
+		Json
+		serialize() const;
+
 		void
-		load_commands(const std::vector<Json> &_commands);
+		deserialize(const Json &json);
 	};
 
 }

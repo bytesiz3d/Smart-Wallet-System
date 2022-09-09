@@ -18,10 +18,10 @@ namespace sws
 		Error
 		is_valid() const;
 
-		Json
+		virtual Json
 		serialize() const;
 
-		void
+		virtual void
 		deserialize(const Json &json);
 	};
 

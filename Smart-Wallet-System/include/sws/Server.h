@@ -46,14 +46,10 @@ namespace sws
 		disconnect();
 	};
 
-	struct Client_Data : public Client_Info
+	struct Client_Data_with_Logs : public Client_Info
 	{
 		cid_t client_id;
 		uint64_t balance;
-	};
-
-	struct Client_Data_with_Logs : public Client_Data
-	{
 		std::vector<std::string> logs;
 	};
 
@@ -63,11 +59,19 @@ namespace sws
 		std::shared_ptr<Connection_Queue> listening_thread_connections;
 		Thread_With_Exit_Flag listening_thread;
 
-		struct Client
+		struct Client : public Client_Info
 		{
-			Client_Data data;
+			cid_t client_id;
+			uint64_t balance;
 			Command_Log log;
+
+			Json
+			serialize() const;
+
+			void
+			deserialize(const Json &json);
 		};
+
 		std::unordered_map<cid_t, Session> active_clients;
 		std::unordered_map<cid_t, Client> registered_clients;
 
@@ -77,10 +81,18 @@ namespace sws
 		void
 		start_session(tcp::Connection &&con);
 
+		void
+		load_registered_clients(std::string_view path);
+
+		void
+		save_registered_clients(std::string_view path);
+
 		Server();
 	public:
 		static std::shared_ptr<Server>
 		instance();
+
+		~Server();
 
 		Error
 		deposit(cid_t client_id, Transaction deposit);

@@ -144,10 +144,23 @@ namespace sws
 		return descriptions;
 	}
 
-	void
-	Command_Log::load_commands(const std::vector<Json> &_commands)
+	Json
+	Command_Log::serialize() const
 	{
-		for (auto &j : _commands)
+		Json arr = Json::array();
+		for (auto &com : commands)
+			arr.push_back(com->serialize());
+
+		return arr;
+	}
+
+	void
+	Command_Log::deserialize(const Json &json)
+	{
+		if (json.is_array() == false)
+			return;
+
+		for (auto &j : json)
 		{
 			auto com = ICommand::deserialize_base(j);
 			commands.push_back(std::move(com));

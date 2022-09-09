@@ -2,6 +2,8 @@
 #include "sws/Client_ID.h"
 #include "sws/Transaction.h"
 
+#include <fstream>
+
 namespace sws
 {
 	void
@@ -12,8 +14,10 @@ namespace sws
 			auto msg = con.receive_message(400);
 			if (msg.empty())
 			{ // Ping client to see if they're online
-				if (con.ping() == false) return;
-				else continue;
+				if (con.ping() == false)
+					return;
+				else
+					continue;
 			}
 
 			auto req = IRequest::deserialize_base(msg);
@@ -69,6 +73,12 @@ namespace sws
 		: listening_thread_connections{std::make_shared<Connection_Queue>()},
 		  listening_thread{listen_for_connections, listening_thread_connections}
 	{
+		load_registered_clients("server.json");
+	}
+
+	Server::~Server()
+	{
+		save_registered_clients("server.json");
 	}
 
 	Error
@@ -81,7 +91,7 @@ namespace sws
 		if (auto err = deposit.is_valid())
 			return err;
 
-		client.data.balance += deposit.amount;
+		client.balance += deposit.amount;
 		return Error{};
 	}
 
@@ -95,10 +105,10 @@ namespace sws
 		if (auto err = withdrawal.is_valid())
 			return err;
 
-		if (client.data.balance < withdrawal.amount)
+		if (client.balance < withdrawal.amount)
 			return Error{"Insufficient funds"};
 
-		client.data.balance -= withdrawal.amount;
+		client.balance -= withdrawal.amount;
 		return Error{};
 	}
 
@@ -112,7 +122,7 @@ namespace sws
 		if (auto err = new_info.is_valid())
 			return Error{"Invalid info: {}", err};
 
-		auto info     = static_cast<Client_Info *>(&client.data);
+		auto info     = static_cast<Client_Info *>(&client);
 		auto old_info = *info;
 		*info         = new_info;
 		return old_info;
@@ -125,7 +135,7 @@ namespace sws
 			return Error{"Client not found"};
 		auto &client = registered_clients.at(client_id);
 
-		return client.data.balance;
+		return client.balance;
 	}
 
 	Error
@@ -158,7 +168,9 @@ namespace sws
 			return ::random();
 		}
 
-		return Error{"ID doesn't exist"};
+		if (registered_clients.contains(client_id) == false)
+			return Error{"ID doesn't exist"};
+		return client_id;
 	}
 
 	void
@@ -183,7 +195,7 @@ namespace sws
 		auto req = IRequest::deserialize_base(msg);
 		auto res = req->command(-1)->execute(this);
 
-		auto res_id = dynamic_cast<Response_ID*>(res.get());
+		auto res_id = dynamic_cast<Response_ID *>(res.get());
 		if (res_id == nullptr)
 			return;
 
@@ -199,7 +211,7 @@ namespace sws
 		if (registered_clients.contains(client_id) == false)
 		{
 			registered_clients.emplace(client_id, Client{});
-			registered_clients.at(client_id).data.client_id = client_id;
+			registered_clients.at(client_id).client_id = client_id;
 		}
 
 		active_clients.emplace(client_id, std::move(con));
@@ -241,7 +253,7 @@ namespace sws
 				clients_to_remove.push_back(id);
 		}
 
-		for (auto id: clients_to_remove)
+		for (auto id : clients_to_remove)
 			active_clients.erase(id);
 	}
 
@@ -260,9 +272,12 @@ namespace sws
 		assert(registered_clients.contains(client_id));
 		auto &client = registered_clients.at(client_id);
 
-		Client_Data_with_Logs data         = {};
-		*static_cast<Client_Data *>(&data) = client.data;
-		data.logs                          = client.log.describe_commands();
+		Client_Data_with_Logs data = {};
+
+		*static_cast<Client_Info *>(&data) = *static_cast<Client_Info *>(&client);
+		data.client_id = client.client_id;
+		data.balance   = client.balance;
+		data.logs      = client.log.describe_commands();
 
 		return data;
 	}
@@ -271,5 +286,57 @@ namespace sws
 	Server::stop_listening_for_connections()
 	{
 		listening_thread.exit();
+	}
+
+	void
+	Server::load_registered_clients(std::string_view path)
+	{
+		std::ifstream input{path.data()};
+		if (input.is_open() == false)
+			return;
+
+		Json json = Json::parse(input);
+		if (json.is_array() == false)
+			return;
+
+		for (auto &j: json)
+		{
+			Client client{};
+			client.deserialize(j);
+			registered_clients.emplace(client.client_id, std::move(client));
+		}
+	}
+
+	void
+	Server::save_registered_clients(std::string_view path)
+	{
+		std::ofstream output{path.data()};
+		if (output.is_open() == false)
+			return;
+
+		Json arr = Json::array();
+		for (auto &[_, client] : registered_clients)
+			arr.push_back(client.serialize());
+
+		output << arr;
+	}
+
+	Json
+	Server::Client::serialize() const
+	{
+		auto json = Client_Info::serialize();
+		json["id"] = client_id;
+		json["balance"] = balance;
+		json["log"] = log.serialize();
+		return json;
+	}
+
+	void
+	Server::Client::deserialize(const Json &json)
+	{
+		Client_Info::deserialize(json);
+		client_id = json["id"];
+		balance = json["balance"];
+		log.deserialize(json["log"]);
 	}
 }
