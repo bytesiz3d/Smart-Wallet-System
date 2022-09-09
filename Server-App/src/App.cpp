@@ -2,12 +2,13 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
+#include <implot.h>
 #include <imgui_internal.h>
 
 namespace server
 {
 	App::App()
-		: server{sws::Server::instance()}, should_exit{false}, active_client_id{id_t(-1)}
+		: server{sws::Server::instance()}, should_exit{false}, active_client_id{-1}
 	{
 	}
 
@@ -30,6 +31,7 @@ namespace server
 		setup_dockspace();
 		clients_list_window();
 		clients_data_window();
+		//statistics_window();
 	}
 
 	void
@@ -46,6 +48,7 @@ namespace server
 
 			ImGui::DockBuilderDockWindow(CLIENTS_LIST_WINDOW_TITLE, left_id);
 			ImGui::DockBuilderDockWindow(CLIENT_DATA_WINDOW_TITLE, right_id);
+			ImGui::DockBuilderDockWindow(STATISTICS_WINDOW_TITLE, right_id);
 		}
 	}
 
@@ -82,7 +85,7 @@ namespace server
 		if (ImGui::Begin(CLIENT_DATA_WINDOW_TITLE, nullptr, DOCKING_WINDOW_FLAGS) == false)
 			return;
 
-		if (active_client_id == id_t(-1))
+		if (active_client_id == -1)
 		{
 			ImGui::Text("No client selected");
 			return;
@@ -118,6 +121,24 @@ namespace server
 			ImGui::EndChild();
 
 			ImGui::EndTable();
+		}
+	}
+
+	void
+	App::statistics_window()
+	{
+		defer { ImGui::End(); };
+		if (ImGui::Begin(STATISTICS_WINDOW_TITLE, nullptr, DOCKING_WINDOW_FLAGS) == false)
+			return;
+
+		static const char *labels[] = {"A", "B", "C", "D", "E"};
+		static int data[]           = {1, 1, 2, 3, 5};
+		if (ImPlot::BeginPlot("##Pie2", ImVec2{-1, -1}, ImPlotFlags_Equal | ImPlotFlags_NoMouseText))
+		{
+			ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+			ImPlot::SetupAxesLimits(0, 1, 0, 1);
+			ImPlot::PlotPieChart(labels, data, 5, 0.5, 0.5, 0.4, true, "%.0f", 180);
+			ImPlot::EndPlot();
 		}
 	}
 }

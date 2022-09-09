@@ -2,6 +2,7 @@
 #include "sws/Client_Info.h"
 #include "sws/Transaction.h"
 #include "sws/Undo_Redo.h"
+#include "sws/Client_ID.h"
 
 namespace sws
 {
@@ -59,6 +60,10 @@ namespace sws
 
 		case KIND_REDO:
 			req = std::make_unique<Request_Redo>();
+			break;
+
+		case KIND_ID:
+			req = std::make_unique<Request_ID>();
 			break;
 
 		default:
@@ -122,6 +127,10 @@ namespace sws
 
 		case KIND_REDO:
 			res = std::make_unique<Response_Redo>();
+			break;
+
+		case KIND_ID:
+			res = std::make_unique<Response_ID>();
 			break;
 
 		default:

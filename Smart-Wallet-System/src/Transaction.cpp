@@ -14,12 +14,12 @@ namespace sws
 	}
 
 	Request_Deposit::Request_Deposit()
-		: IRequest{IRequest::KIND_DEPOSIT}, deposit{}
+		: IRequest{KIND_DEPOSIT}, deposit{}
 	{
 	}
 
 	Request_Deposit::Request_Deposit(Transaction _deposit)
-		: IRequest{IRequest::KIND_DEPOSIT}, deposit{_deposit}
+		: IRequest{KIND_DEPOSIT}, deposit{_deposit}
 	{
 	}
 
@@ -28,7 +28,8 @@ namespace sws
 	{
 		auto req       = IRequest::serialize();
 		req["request"] = {
-			{"amount", deposit.amount}};
+			{"amount", deposit.amount}
+		};
 		return req;
 	}
 
@@ -40,22 +41,22 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Deposit::command(id_t client_id)
+	Request_Deposit::command(cid_t client_id)
 	{
 		return std::make_unique<Command_Deposit>(client_id, deposit);
 	}
 
 	Response_Deposit::Response_Deposit()
-		: IResponse{IRequest::KIND_DEPOSIT, {}}
+		: IResponse{KIND_DEPOSIT, {}}
 	{
 	}
 
 	Response_Deposit::Response_Deposit(Error _error)
-		: IResponse{IRequest::KIND_DEPOSIT, std::move(_error)}
+		: IResponse{KIND_DEPOSIT, std::move(_error)}
 	{
 	}
 
-	Command_Deposit::Command_Deposit(id_t client_id, Transaction _deposit)
+	Command_Deposit::Command_Deposit(cid_t client_id, Transaction _deposit)
 		: ICommand(client_id), deposit{_deposit}
 	{
 	}
@@ -66,20 +67,20 @@ namespace sws
 		if (auto err = deposit.is_valid())
 			return std::make_unique<Response_Deposit>(err);
 
-		auto err = server->deposit(client_id, deposit.amount);
+		auto err = server->deposit(client_id, deposit);
 		return std::make_unique<Response_Deposit>(err);
 	}
 
 	Error
 	Command_Deposit::undo(Server *server)
 	{
-		return server->withdraw(client_id, deposit.amount);
+		return server->withdraw(client_id, deposit);
 	}
 
 	Error
 	Command_Deposit::redo(Server *server)
 	{
-		return server->deposit(client_id, deposit.amount);
+		return server->deposit(client_id, deposit);
 	}
 
 	std::string
@@ -89,12 +90,12 @@ namespace sws
 	}
 
 	Request_Withdrawal::Request_Withdrawal()
-		: IRequest{IRequest::KIND_WITHDRAWAL}, withdrawal{0}
+		: IRequest{KIND_WITHDRAWAL}, withdrawal{0}
 	{
 	}
 
 	Request_Withdrawal::Request_Withdrawal(Transaction _withdrawal)
-		: IRequest{IRequest::KIND_WITHDRAWAL}, withdrawal{_withdrawal}
+		: IRequest{KIND_WITHDRAWAL}, withdrawal{_withdrawal}
 	{
 	}
 
@@ -115,22 +116,22 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Withdrawal::command(id_t client_id)
+	Request_Withdrawal::command(cid_t client_id)
 	{
 		return std::make_unique<Command_Withdrawal>(client_id, withdrawal);
 	}
 
 	Response_Withdrawal::Response_Withdrawal()
-		: IResponse{IRequest::KIND_WITHDRAWAL, {}}
+		: IResponse{KIND_WITHDRAWAL, {}}
 	{
 	}
 
 	Response_Withdrawal::Response_Withdrawal(Error _error)
-		: IResponse{IRequest::KIND_WITHDRAWAL, std::move(_error)}
+		: IResponse{KIND_WITHDRAWAL, std::move(_error)}
 	{
 	}
 
-	Command_Withdrawal::Command_Withdrawal(id_t client_id, Transaction _withdrawal)
+	Command_Withdrawal::Command_Withdrawal(cid_t client_id, Transaction _withdrawal)
 		: ICommand(client_id), withdrawal(_withdrawal)
 	{
 	}
@@ -141,20 +142,20 @@ namespace sws
 		if (auto err = withdrawal.is_valid())
 			return std::make_unique<Response_Withdrawal>(err);
 
-		auto err = server->withdraw(client_id, withdrawal.amount);
+		auto err = server->withdraw(client_id, withdrawal);
 		return std::make_unique<Response_Withdrawal>(err);
 	}
 
 	Error
 	Command_Withdrawal::undo(Server *server)
 	{
-		return server->deposit(client_id, withdrawal.amount);
+		return server->deposit(client_id, withdrawal);
 	}
 
 	Error
 	Command_Withdrawal::redo(Server *server)
 	{
-		return server->withdraw(client_id, withdrawal.amount);
+		return server->withdraw(client_id, withdrawal);
 	}
 
 	std::string
@@ -169,7 +170,7 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Query_Balance::command(id_t client_id)
+	Request_Query_Balance::command(cid_t client_id)
 	{
 		return std::make_unique<Command_Query_Balance>(client_id);
 	}
@@ -206,7 +207,7 @@ namespace sws
 		return balance;
 	}
 
-	Command_Query_Balance::Command_Query_Balance(id_t client_id)
+	Command_Query_Balance::Command_Query_Balance(cid_t client_id)
 		: IMetaCommand{client_id}
 	{
 	}

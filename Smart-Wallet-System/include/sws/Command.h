@@ -12,9 +12,9 @@ namespace sws
 	class ICommand
 	{
 	protected:
-		explicit ICommand(id_t _client_id);
+		explicit ICommand(cid_t _client_id);
 
-		id_t client_id;
+		cid_t client_id;
 
 	public:
 		virtual std::unique_ptr<IResponse>
@@ -36,7 +36,7 @@ namespace sws
 	class IMetaCommand : public ICommand
 	{
 	protected:
-		explicit IMetaCommand(id_t _client_id);
+		explicit IMetaCommand(cid_t _client_id);
 
 	public:
 		virtual Error

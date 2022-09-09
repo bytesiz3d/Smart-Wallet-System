@@ -15,7 +15,7 @@
 
 namespace sws
 {
-	using id_t = uint32_t;
+	using cid_t = int32_t;
 
 	class ILogger
 	{
@@ -82,6 +82,20 @@ namespace sws
 			Log::instance()->logger->fatal(fmt::format(fmt, std::forward<TArgs>(args)...));
 		}
 	};
+
+	// Adapted from https://github.com/MoustaphaSaad/mn
+	template <typename F>
+	struct Defer
+	{
+		F f;
+		Defer(F f) : f(f) {}
+		~Defer() { f(); }
+	};
+
+	#define sws_DEFER_1(x, y) x##y
+	#define sws_DEFER_2(x, y) sws_DEFER_1(x, y)
+	#define sws_DEFER_3(x)    sws_DEFER_2(x, __COUNTER__)
+	#define defer sws::Defer sws_DEFER_3(_defer_) = [&]()
 
 	class Error
 	{
@@ -185,6 +199,8 @@ namespace sws
 		{
 		}
 
+		Thread_With_Exit_Flag(Thread_With_Exit_Flag &&) noexcept = default;
+
 		void
 		exit()
 		{
@@ -205,19 +221,6 @@ namespace sws
 			exit();
 		}
 	};
-
-	template <typename F>
-	struct Defer
-	{
-		F f;
-		Defer(F f) : f(f) {}
-		~Defer() { f(); }
-	};
-
-	#define sws_DEFER_1(x, y) x##y
-	#define sws_DEFER_2(x, y) sws_DEFER_1(x, y)
-	#define sws_DEFER_3(x)    sws_DEFER_2(x, __COUNTER__)
-	#define defer sws::Defer sws_DEFER_3(_defer_) = [&]()
 }
 
 namespace fmt

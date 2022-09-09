@@ -34,7 +34,7 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command(id_t client_id) override;
+		command(cid_t client_id) override;
 	};
 
 	class Response_Update_Info : public IResponse
@@ -49,7 +49,7 @@ namespace sws
 	{
 		Client_Info old_info, new_info;
 	public:
-		explicit Command_Update_Info(id_t client_id, Client_Info _new_info);
+		explicit Command_Update_Info(cid_t client_id, Client_Info _new_info);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;

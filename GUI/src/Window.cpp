@@ -4,6 +4,8 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl.h>
 
+#include <implot.h>
+
 #include <SDL.h>
 #include <SDL_opengl.h>
 
@@ -55,6 +57,9 @@ namespace gui
 		font_config.FontDataOwnedByAtlas = false;
 		auto font = io.Fonts->AddFontFromMemoryTTF(DroidSans_ttf, DroidSans_ttf_len, 20.0f, &font_config);
 		assert(font);
+
+		// Setup ImPlot
+		ImPlot::CreateContext();
 
 		this->window = window;
 		this->context = gl_context;
@@ -113,6 +118,8 @@ namespace gui
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplSDL2_Shutdown();
+
+		ImPlot::DestroyContext();
 		ImGui::DestroyContext();
 
 		SDL_GL_DeleteContext(this->context);

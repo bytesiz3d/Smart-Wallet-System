@@ -9,7 +9,7 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Undo::command(id_t client_id)
+	Request_Undo::command(cid_t client_id)
 	{
 		return std::make_unique<Command_Undo>(client_id);
 	}
@@ -24,7 +24,7 @@ namespace sws
 	{
 	}
 
-	Command_Undo::Command_Undo(id_t client_id)
+	Command_Undo::Command_Undo(cid_t client_id)
 		: IMetaCommand(client_id)
 	{
 	}
@@ -48,7 +48,7 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Redo::command(id_t client_id)
+	Request_Redo::command(cid_t client_id)
 	{
 		return std::make_unique<Command_Redo>(client_id);
 	}
@@ -63,7 +63,7 @@ namespace sws
 	{
 	}
 
-	Command_Redo::Command_Redo(id_t client_id)
+	Command_Redo::Command_Redo(cid_t client_id)
 		: IMetaCommand(client_id)
 	{
 	}

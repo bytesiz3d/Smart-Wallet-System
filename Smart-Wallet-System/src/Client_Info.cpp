@@ -66,7 +66,7 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Update_Info::command(id_t client_id)
+	Request_Update_Info::command(cid_t client_id)
 	{
 		return std::make_unique<Command_Update_Info>(client_id, client_info);
 	}
@@ -81,7 +81,7 @@ namespace sws
 	{
 	}
 
-	Command_Update_Info::Command_Update_Info(id_t client_id, Client_Info _new_info)
+	Command_Update_Info::Command_Update_Info(cid_t client_id, Client_Info _new_info)
 		: ICommand(client_id), new_info{std::move(_new_info)}
 	{
 	}

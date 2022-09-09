@@ -96,8 +96,8 @@ namespace client
 			return;
 		}
 
-		static uint64_t amount = 0;
-		ImGui::InputScalar("Amount", ImGuiDataType_U64, &amount, nullptr, nullptr, nullptr, ImGuiInputTextFlags_CharsDecimal);
+		static int64_t amount = 0;
+		ImGui::InputScalar("Amount", ImGuiDataType_S64, &amount, nullptr, nullptr, nullptr, ImGuiInputTextFlags_CharsDecimal);
 
 		if (ImGui::Button("Deposit"))
 			wait_for_response(client.deposit(amount));

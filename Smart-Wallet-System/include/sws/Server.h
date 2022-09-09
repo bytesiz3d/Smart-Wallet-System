@@ -1,18 +1,17 @@
 #pragma once
 
 #include "sws/Base.h"
-#include "sws/TCP.h"
 #include "sws/Client_Info.h"
+#include "sws/TCP.h"
 
-#include <thread>
 #include <queue>
+#include <thread>
 
 namespace sws
 {
-	class Server;
-
 	class IRequest;
 	class IResponse;
+	struct Transaction;
 
 	// Client thread to server
 	using Request_Queue = Thread_Safe_Queue<std::unique_ptr<IRequest>>;
@@ -31,6 +30,7 @@ namespace sws
 	public:
 		Session() = delete;
 		explicit Session(tcp::Connection &&con);
+		Session(Session &&) noexcept = default;
 		~Session();
 
 		std::unique_ptr<IRequest>
@@ -48,7 +48,7 @@ namespace sws
 
 	struct Client_Data : public Client_Info
 	{
-		id_t client_id;
+		cid_t client_id;
 		uint64_t balance;
 	};
 
@@ -59,7 +59,7 @@ namespace sws
 
 	class Server
 	{
-		using Connection_Queue = Thread_Safe_Queue<std::pair<id_t, tcp::Connection>>;
+		using Connection_Queue = Thread_Safe_Queue<tcp::Connection>;
 		std::shared_ptr<Connection_Queue> listening_thread_connections;
 		Thread_With_Exit_Flag listening_thread;
 
@@ -72,10 +72,13 @@ namespace sws
 			Client() = delete;
 			explicit Client(tcp::Connection &&con);
 		};
-		std::unordered_map<id_t, Client> active_clients;
+		std::unordered_map<cid_t, Client> active_clients;
 
 		static void
 		listen_for_connections(std::shared_ptr<Connection_Queue> queue, std::shared_ptr<std::atomic_flag> should_exit);
+
+		void
+		start_session(tcp::Connection &&con);
 
 		Server();
 	public:
@@ -83,31 +86,34 @@ namespace sws
 		instance();
 
 		Error
-		deposit(id_t client_id, uint64_t amount);
+		deposit(cid_t client_id, Transaction deposit);
 
 		Error
-		withdraw(id_t client_id, uint64_t amount);
+		withdraw(cid_t client_id, Transaction withdrawal);
 
 		Result<Client_Info>
-		update_info(id_t client_id, const Client_Info &new_info);
+		update_info(cid_t client_id, const Client_Info &new_info);
 
 		Result<uint64_t>
-		query_balance(id_t client_id);
+		query_balance(cid_t client_id);
+
+		Result<cid_t>
+		new_session_with_id(cid_t client_id);
 
 		Error
-		undo(id_t client_id);
+		undo(cid_t client_id);
 
 		Error
-		redo(id_t client_id);
+		redo(cid_t client_id);
 
 		void
 		update_state();
 
-		std::vector<id_t>
+		std::vector<cid_t>
 		clients();
 
 		Client_Data_with_Logs
-		client_data(id_t client_id);
+		client_data(cid_t client_id);
 
 		void
 		stop_listening_for_connections();

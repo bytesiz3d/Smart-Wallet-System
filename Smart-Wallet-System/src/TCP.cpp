@@ -81,7 +81,7 @@ namespace sws::tcp
 		std::string msg = json.dump();
 		size_t size     = msg.length();
 
-		if (bool ok = write_bytes(&size, sizeof(size)); ok == false)
+		if (write_bytes(&size, sizeof(size)) == false)
 			return false;
 
 		return write_bytes(msg.data(), size);
@@ -110,7 +110,7 @@ namespace sws::tcp
 	}
 
 	bool
-	Connection::message_is_ping(const Json &json) const
+	Connection::message_is_ping(const Json &json)
 	{
 		return json.size() == 1 &&
 			   json.contains("ping") &&

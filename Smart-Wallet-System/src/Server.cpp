@@ -1,4 +1,6 @@
 #include "sws/Server.h"
+#include "sws/Client_ID.h"
+#include "sws/Transaction.h"
 
 namespace sws
 {
@@ -75,32 +77,38 @@ namespace sws
 	}
 
 	Error
-	Server::deposit(id_t client_id, uint64_t amount)
+	Server::deposit(cid_t client_id, Transaction deposit)
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
 		auto &client = active_clients.at(client_id);
 
-		client.data.balance += amount;
+		if (auto err = deposit.is_valid())
+			return err;
+
+		client.data.balance += deposit.amount;
 		return Error{};
 	}
 
 	Error
-	Server::withdraw(id_t client_id, uint64_t amount)
+	Server::withdraw(cid_t client_id, Transaction withdrawal)
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
 		auto &client = active_clients.at(client_id);
 
-		if (client.data.balance < amount)
+		if (auto err = withdrawal.is_valid())
+			return err;
+
+		if (client.data.balance < withdrawal.amount)
 			return Error{"Insufficient funds"};
 
-		client.data.balance -= amount;
+		client.data.balance -= withdrawal.amount;
 		return Error{};
 	}
 
 	Result<Client_Info>
-	Server::update_info(id_t client_id, const Client_Info &new_info)
+	Server::update_info(cid_t client_id, const Client_Info &new_info)
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
@@ -116,7 +124,7 @@ namespace sws
 	}
 
 	Result<uint64_t>
-	Server::query_balance(id_t client_id)
+	Server::query_balance(cid_t client_id)
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
@@ -125,17 +133,54 @@ namespace sws
 		return client.data.balance;
 	}
 
+	// -1 to start a new client
+	Result<cid_t>
+	Server::new_session_with_id(cid_t client_id)
+	{
+		if (client_id == -1)
+		{
+			::srandom(::clock());
+			return ::random();
+		}
+
+		return Error{"ID doesn't exist"};
+	}
+
 	void
 	Server::listen_for_connections(std::shared_ptr<Connection_Queue> queue, std::shared_ptr<std::atomic_flag> should_exit)
 	{
 		tcp::Server server{};
-		id_t next_client_id = 0;
 		while (should_exit->test() == false)
 		{
 			auto connection = server.accept(200); // timeout = 200 ms
 			if (connection.is_valid())
-				queue->push({next_client_id++, std::move(connection)});
+				queue->push(std::move(connection));
 		}
+	}
+
+	void
+	Server::start_session(tcp::Connection &&con)
+	{
+		auto msg = con.receive_message(400);
+		if (msg.empty()) // Client didn't request ID
+			return;
+
+		auto req = IRequest::deserialize_base(msg);
+		auto res = req->command(-1)->execute(this);
+
+		auto res_id = dynamic_cast<Response_ID*>(res.get());
+		if (res_id == nullptr)
+			return;
+
+		con.send_message(res_id->serialize());
+
+		if (res_id->error)
+			return;
+
+		// New session is valid
+		auto client_id = res_id->get_id();
+		active_clients.emplace(client_id, std::move(con));
+		active_clients.at(client_id).data.client_id = client_id;
 	}
 
 	std::shared_ptr<Server>
@@ -150,13 +195,9 @@ namespace sws
 	{
 		// Start sessions
 		while (listening_thread_connections->empty() == false)
-		{
-			auto [id, con] = listening_thread_connections->pop();
-			active_clients.emplace(id, std::move(con)); // start a new session
-			active_clients.at(id).data.client_id = id;
-		}
+			start_session(listening_thread_connections->pop());
 
-		std::vector<id_t> clients_to_remove;
+		std::vector<cid_t> clients_to_remove;
 		for (auto &[id, client] : active_clients)
 		{
 			// See if there's any requests
@@ -179,17 +220,17 @@ namespace sws
 			active_clients.erase(id);
 	}
 
-	std::vector<id_t>
+	std::vector<cid_t>
 	Server::clients()
 	{
-		std::vector<id_t> ids;
+		std::vector<cid_t> ids;
 		for (auto &[id, client] : active_clients)
 			ids.push_back(id);
 		return ids;
 	}
 
 	Client_Data_with_Logs
-	Server::client_data(id_t client_id)
+	Server::client_data(cid_t client_id)
 	{
 		assert(active_clients.contains(client_id));
 
@@ -203,7 +244,7 @@ namespace sws
 	}
 
 	Error
-	Server::undo(id_t client_id)
+	Server::undo(cid_t client_id)
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
@@ -213,7 +254,7 @@ namespace sws
 	}
 
 	Error
-	Server::redo(id_t client_id)
+	Server::redo(cid_t client_id)
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};

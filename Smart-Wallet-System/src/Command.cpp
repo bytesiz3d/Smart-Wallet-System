@@ -5,7 +5,7 @@
 
 namespace sws
 {
-	ICommand::ICommand(id_t _client_id)
+	ICommand::ICommand(cid_t _client_id)
 		: client_id{_client_id}
 	{
 	}
@@ -16,7 +16,7 @@ namespace sws
 		return false;
 	}
 
-	IMetaCommand::IMetaCommand(id_t _client_id)
+	IMetaCommand::IMetaCommand(cid_t _client_id)
 		: ICommand{_client_id}
 	{
 	}

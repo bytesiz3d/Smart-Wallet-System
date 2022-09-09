@@ -9,7 +9,7 @@ namespace sws
 {
 	struct Transaction
 	{
-		uint64_t amount;
+		int64_t amount;
 
 		Error
 		is_valid() const;
@@ -30,7 +30,7 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command(id_t client_id) override;
+		command(cid_t client_id) override;
 	};
 
 	class Response_Deposit : public IResponse
@@ -44,7 +44,7 @@ namespace sws
 	{
 		Transaction deposit;
 	public:
-		Command_Deposit(id_t client_id, Transaction _deposit);
+		Command_Deposit(cid_t client_id, Transaction _deposit);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
@@ -74,7 +74,7 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command(id_t client_id) override;
+		command(cid_t client_id) override;
 	};
 
 	class Response_Withdrawal : public IResponse
@@ -88,7 +88,7 @@ namespace sws
 	{
 		Transaction withdrawal;
 	public:
-		Command_Withdrawal(id_t client_id, Transaction _withdrawal);
+		Command_Withdrawal(cid_t client_id, Transaction _withdrawal);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
@@ -109,7 +109,7 @@ namespace sws
 		Request_Query_Balance();
 
 		std::unique_ptr<ICommand>
-		command(id_t client_id) override;
+		command(cid_t client_id) override;
 	};
 
 	class Response_Query_Balance : public IResponse
@@ -132,7 +132,7 @@ namespace sws
 	class Command_Query_Balance : public IMetaCommand
 	{
 	public:
-		explicit Command_Query_Balance(id_t client_id);
+		explicit Command_Query_Balance(cid_t client_id);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;

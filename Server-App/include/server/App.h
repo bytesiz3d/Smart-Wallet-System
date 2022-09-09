@@ -11,11 +11,12 @@ namespace server
 	class App : public gui::IApp
 	{
 		bool should_exit;
-		id_t active_client_id;
+		sws::cid_t active_client_id;
 		std::shared_ptr<sws::Server> server;
 
 		constexpr static auto CLIENTS_LIST_WINDOW_TITLE = "Clients";
 		constexpr static auto CLIENT_DATA_WINDOW_TITLE = "Client Data";
+		constexpr static auto STATISTICS_WINDOW_TITLE = "Statistics";
 		constexpr static ImGuiWindowFlags DOCKING_WINDOW_FLAGS = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 
 		void
@@ -26,6 +27,9 @@ namespace server
 
 		void
 		clients_data_window();
+
+		void
+		statistics_window();
 
 	public:
 		App();

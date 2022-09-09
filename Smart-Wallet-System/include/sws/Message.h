@@ -14,6 +14,7 @@ namespace sws
 	protected:
 		enum KIND : uint8_t
 		{
+			KIND_ID,
 			KIND_UPDATE_INFO,
 			KIND_DEPOSIT,
 			KIND_WITHDRAWAL,
@@ -48,7 +49,7 @@ namespace sws
 
 		// Force override
 		virtual std::unique_ptr<ICommand>
-		command(id_t client_id) = 0;
+		command(cid_t client_id) = 0;
 	};
 
 	class IResponse : public IMessage
