@@ -137,6 +137,12 @@ namespace server
 		if (ImGui::Begin(STATISTICS_WINDOW_TITLE, nullptr, DOCKING_WINDOW_FLAGS) == false)
 			return;
 
+		if (server->clients().empty())
+		{
+			ImGui::Text("No statistics available");
+			return;
+		}
+
 		auto [width, height] = ImGui::GetContentRegionAvail();
 
 		constexpr static ImPlotFlags FLAGS = ImPlotFlags_NoInputs | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText;
@@ -146,15 +152,15 @@ namespace server
 			auto [max_labels, max_values] = server->highest_n_balances(N_BARS);
 
 			std::vector<const char*> max_labels_c{max_labels.size()};
-			for (size_t i = 0; i < N_BARS; i++)
+			for (size_t i = 0; i < max_labels.size(); i++)
 				max_labels_c[i] = max_labels[i].c_str();
 
-			std::vector<double> max_ticks(N_BARS);
+			std::vector<double> max_ticks(max_labels.size());
 			std::iota(max_ticks.begin(), max_ticks.end(), 0); // 0 -> N-1
 
 			ImPlot::SetupAxes("IDs", "Balance", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
-			ImPlot::SetupAxisTicks(ImAxis_X1, max_ticks.data(), N_BARS, max_labels_c.data());
-			ImPlot::PlotBars("Bars", max_values.data(), N_BARS);
+			ImPlot::SetupAxisTicks(ImAxis_X1, max_ticks.data(), max_ticks.size(), max_labels_c.data());
+			ImPlot::PlotBars("Bars", max_values.data(), max_values.size());
 			ImPlot::EndPlot();
 		}
 
