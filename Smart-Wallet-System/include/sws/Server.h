@@ -126,5 +126,12 @@ namespace sws
 
 		void
 		stop_listening_for_connections();
+
+		using Plot_Data = std::pair<std::vector<std::string>, std::vector<int>>;
+		Plot_Data
+		balance_distribution();
+
+		Plot_Data
+		highest_n_balances(size_t N = 5);
 	};
 };

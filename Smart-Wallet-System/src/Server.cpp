@@ -343,4 +343,51 @@ namespace sws
 		balance = json["balance"];
 		log.deserialize(json["log"]);
 	}
+
+	Server::Plot_Data
+	Server::balance_distribution()
+	{
+		Plot_Data data{};
+		constexpr static int EXP_LAST = 9;
+		for (int exp = 0; exp <= EXP_LAST; exp++)
+		{
+			data.first.push_back(fmt::format("{}", (int)pow(10, exp)));
+			data.second.push_back(0);
+		}
+
+		for (auto &[_, client] : registered_clients)
+		{
+			int exp = int(log10(client.balance));
+			if (exp > EXP_LAST)
+				exp = EXP_LAST;
+			data.second[exp]++;
+		}
+		return data;
+	}
+
+	Server::Plot_Data
+	Server::highest_n_balances(size_t N)
+	{
+		std::vector<std::pair<cid_t, uint64_t>> highest_balances{};
+
+		for (auto &[id, client] : registered_clients)
+			highest_balances.emplace_back(id, client.balance);
+
+		std::sort(highest_balances.begin(), highest_balances.end(), [](auto &a, auto &b) {
+			return a.second >= b.second;
+		});
+
+		Plot_Data data{};
+
+		size_t i = 0;
+		for (auto [id, balance] : highest_balances)
+		{
+			data.first.push_back(std::to_string(id));
+			data.second.push_back(balance);
+
+			if (++i == N)
+				break;
+		}
+		return data;
+	}
 }

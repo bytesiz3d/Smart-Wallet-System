@@ -31,7 +31,7 @@ namespace server
 		setup_dockspace();
 		clients_list_window();
 		clients_data_window();
-		//statistics_window();
+		statistics_window();
 	}
 
 	void
@@ -137,13 +137,39 @@ namespace server
 		if (ImGui::Begin(STATISTICS_WINDOW_TITLE, nullptr, DOCKING_WINDOW_FLAGS) == false)
 			return;
 
-		static const char *labels[] = {"A", "B", "C", "D", "E"};
-		static int data[]           = {1, 1, 2, 3, 5};
-		if (ImPlot::BeginPlot("##Pie2", ImVec2{-1, -1}, ImPlotFlags_Equal | ImPlotFlags_NoMouseText))
+		auto [width, height] = ImGui::GetContentRegionAvail();
+
+		constexpr static ImPlotFlags FLAGS = ImPlotFlags_NoInputs | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText;
+		if (ImPlot::BeginPlot("Highest N Balances##max", ImVec2{-1, height/2}, FLAGS | ImPlotFlags_NoLegend))
 		{
-			ImPlot::SetupAxes(NULL, NULL, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
+			constexpr static int N_BARS = 5;
+			auto [max_labels, max_values] = server->highest_n_balances(N_BARS);
+
+			std::vector<const char*> max_labels_c{max_labels.size()};
+			for (size_t i = 0; i < N_BARS; i++)
+				max_labels_c[i] = max_labels[i].c_str();
+
+			std::vector<double> max_ticks(N_BARS);
+			std::iota(max_ticks.begin(), max_ticks.end(), 0); // 0 -> N-1
+
+			ImPlot::SetupAxes("IDs", "Balance", ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_AutoFit);
+			ImPlot::SetupAxisTicks(ImAxis_X1, max_ticks.data(), N_BARS, max_labels_c.data());
+			ImPlot::PlotBars("Bars", max_values.data(), N_BARS);
+			ImPlot::EndPlot();
+		}
+
+		if (ImPlot::BeginPlot("Balance Distribution##Dist", ImVec2{(3 * height)/4, height/2}, FLAGS))
+		{
+			auto [dist_labels, dist_values] = server->balance_distribution();
+			std::vector<const char*> dist_labels_c{dist_labels.size()};
+			for (size_t i = 0; i < dist_labels.size(); i++)
+				dist_labels_c[i] = dist_labels[i].c_str();
+
+			ImPlot::SetupAxes(nullptr, nullptr, ImPlotAxisFlags_NoDecorations, ImPlotAxisFlags_NoDecorations);
 			ImPlot::SetupAxesLimits(0, 1, 0, 1);
-			ImPlot::PlotPieChart(labels, data, 5, 0.5, 0.5, 0.4, true, "%.0f", 180);
+			ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
+			ImPlot::PlotPieChart(dist_labels_c.data(), dist_values.data(), dist_values.size(),
+								 0.5, 0.5, 0.35, true, "%.0f");
 			ImPlot::EndPlot();
 		}
 	}

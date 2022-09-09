@@ -175,6 +175,7 @@ namespace client
 		if (should_exit)
 			return;
 
+		ImGui::GetStyle().WindowPadding = {50.f, 25.f};
 		setup_dockspace();
 		response_popup_modal();
 		main_window();
