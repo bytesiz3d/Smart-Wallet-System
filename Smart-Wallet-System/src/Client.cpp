@@ -29,23 +29,40 @@ namespace sws
 		}
 	}
 
-	Client::Client(cid_t _id)
-		: id{-1}, tcp_client{std::make_shared<tcp::Client>()}
+	Error
+	Client::begin_session(cid_t client_id) // -1 to receive from server
 	{
-		if (tcp_client->is_valid() == false)
-			return;
+		if (has_valid_connection())
+			return Error{"Session in progress"};
+
+		tcp_client = std::make_shared<tcp::Client>(); // Begin a new session
+
+		bool discard = false;
+		defer { if (discard) auto c = std::move(tcp_client); };
 
 		// Request to set ID
-		Request_ID set_id{_id};
-		auto res = send_request(tcp_client, set_id.serialize());
-		if (auto res_id = dynamic_cast<Response_ID*>(res.get()))
+		Request_ID req{client_id};
+		auto res = send_request(tcp_client, req.serialize());
+
+		auto res_id = dynamic_cast<Response_ID*>(res.get());
+		if (res_id == nullptr)
 		{
-			id = res_id->get_id();
+			discard = true;
+			return Error{"Failed to receive ID response"};
 		}
-		else
-		{ // invalidate tcp client
-			auto discard = std::move(tcp_client);
+		if (res_id->error)
+		{
+			discard = true;
+			return res_id->error;
 		}
+
+		auto set_id = res_id->get_id();
+		if (client_id == -1 && set_id == -1)
+			assert(set_id != -1);
+		if (client_id != -1)
+			assert(set_id == client_id);
+
+		return Error{};
 	}
 
 	Response_Future
@@ -93,6 +110,6 @@ namespace sws
 	bool
 	Client::has_valid_connection()
 	{
-		return tcp_client->is_valid();
+		return tcp_client != nullptr && tcp_client->is_valid();
 	}
 }

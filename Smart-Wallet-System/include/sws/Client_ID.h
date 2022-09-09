@@ -46,7 +46,7 @@ namespace sws
 	{
 		cid_t id_to_set;
 	public:
-		explicit Command_ID(cid_t client_id, cid_t _id_to_set);
+		explicit Command_ID(cid_t _id_to_set);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;

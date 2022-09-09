@@ -34,7 +34,7 @@ namespace sws
 	Request_ID::command(cid_t client_id)
 	{
 		// Dummy id
-		return std::make_unique<Command_ID>(-1, client_id);
+		return std::make_unique<Command_ID>(id_to_set);
 	}
 
 	cid_t
@@ -75,8 +75,8 @@ namespace sws
 		return id_set;
 	}
 
-	Command_ID::Command_ID(cid_t client_id, cid_t _id_to_set)
-		: IMetaCommand(client_id), id_to_set{_id_to_set}
+	Command_ID::Command_ID(cid_t _id_to_set)
+		: IMetaCommand{-1}, id_to_set{_id_to_set} // dummy ID
 	{
 	}
 

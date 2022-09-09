@@ -26,14 +26,16 @@ namespace sws
 	// TODO: Singleton
 	class Client
 	{
-		cid_t id;
 		std::shared_ptr<tcp::Client> tcp_client;
 
 		static std::unique_ptr<IResponse>
 		send_request(std::shared_ptr<tcp::Client> client, Json json);
 
 	public:
-		explicit Client(cid_t _id = -1); // -1 to receive from server
+		Client() = default;
+
+		Error
+		begin_session(cid_t client_id); // -1 to receive from server
 
 		Response_Future
 		deposit(int64_t amount);

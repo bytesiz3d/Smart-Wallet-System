@@ -89,9 +89,30 @@ namespace client
 
 		if (client.has_valid_connection() == false)
 		{
-			ImGui::TextColored({0.10f, 0.04f, 0.07f, 1.00f}, "Couldn't connect to server");
-			if (ImGui::Button("Reconnect"))
-				client = sws::Client{};
+			static int32_t id = 0;
+			ImGui::InputScalar("ID", ImGuiDataType_S32, &id, nullptr, nullptr, nullptr, ImGuiInputTextFlags_CharsDecimal);
+
+			int32_t id_to_use = -2; // -1: Register, >= 0: Login
+			if (ImGui::Button("Login"))
+			{
+				id_to_use = id;
+			}
+			if (ImGui::SameLine(); ImGui::Button("Register"))
+			{
+				id_to_use = -1;
+			}
+
+			static std::string last_error = {};
+			if (id_to_use > -2)
+			{
+				auto err = client.begin_session(id_to_use);
+				if (err)
+					last_error = std::move(err.msg);
+				else
+					last_error.clear();
+			}
+			if (last_error.empty() == false)
+				ImGui::TextColored({1.f, 0.f, 0.f, 1.f}, "%s", last_error.c_str());
 
 			return;
 		}
