@@ -33,9 +33,11 @@ namespace client
 	{
 		response_popup_id = ImGui::GetID(RESPONSE_POPUP_MODAL_TITLE);
 
-		ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+		constexpr static ImGuiWindowFlags FLAGS = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 		ImGui::SetNextWindowSize({320.f, 180.f}, ImGuiCond_Appearing);
-		if (ImGui::BeginPopupModal(RESPONSE_POPUP_MODAL_TITLE, nullptr, flags) == false)
+		ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2{0.5f, 0.5f});
+
+		if (ImGui::BeginPopupModal(RESPONSE_POPUP_MODAL_TITLE, nullptr, FLAGS) == false)
 			return;
 		defer { ImGui::EndPopup(); };
 

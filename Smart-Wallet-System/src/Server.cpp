@@ -5,13 +5,13 @@ namespace sws
 	void
 	Session::serve(tcp::Connection con, std::shared_ptr<Request_Queue> requests, std::shared_ptr<Response_Queue> responses, std::shared_ptr<std::atomic_flag> should_exit)
 	{
-		// TODO: Better termination
-		// TODO: send ack?
 		while (should_exit->test() == false)
 		{
-			auto msg = con.receive_message();
+			auto msg = con.receive_message(tcp::TIMEOUT_INFINITE);
 			if (msg.empty())
+			{ // TODO: Add timeout and break only if client is disconnected
 				break;
+			}
 
 			auto req = IRequest::deserialize_base(msg);
 			requests->push(std::move(req));

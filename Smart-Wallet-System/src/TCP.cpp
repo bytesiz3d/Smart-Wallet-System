@@ -37,6 +37,39 @@ namespace sws::tcp
 	}
 
 	bool
+	Connection::read_bytes(void *data, size_t size, int timeout_ms) const
+	{
+		assert(size != size_t(-1));
+		pollfd pfd_read = {.fd = this->handle, .events = POLLIN};
+
+		if (int ready = ::poll(&pfd_read, 1, timeout_ms); ready < 0)
+			assert(false && "poll failed");
+		else if (ready == 0)
+			return false;
+
+		int read_size = ::recv(this->handle, data, size, 0);
+		return read_size == size;
+	}
+
+	bool
+	Connection::write_bytes(void *data, size_t size) const
+	{
+		assert(size != size_t(-1));
+		pollfd pfd_write = {.fd = this->handle, .events = POLLERR};
+
+		if (int have_errors = ::poll(&pfd_write, 1, 30); have_errors < 0)
+			assert(false && "poll failed");
+		else if (have_errors > 0)
+			return false;
+
+		int write_size = ::send(this->handle, data, size, MSG_NOSIGNAL);
+		if (errno == EPIPE)
+			return false;
+
+		return write_size == size;
+	}
+
+	bool
 	Connection::is_valid() const
 	{
 		return this->handle >= 0;
@@ -48,26 +81,23 @@ namespace sws::tcp
 		std::string msg = json.dump();
 		size_t size     = msg.length();
 
-		int sent = ::send(this->handle, &size, sizeof(size), 0);
-		assert(sent == sizeof(size));
+		if (bool ok = write_bytes(&size, sizeof(size)); ok == false)
+			return;
 
-		sent = ::send(this->handle, msg.data(), size, 0);
-		assert(sent == size);
+		write_bytes(msg.data(), size);
 	}
 
-	// TODO: Better termination
 	Json
-	Connection::receive_message() const
+	Connection::receive_message(int timeout_ms) const
 	{
 		size_t size = 0;
-		int read    = ::recv(this->handle, &size, sizeof(size), 0);
-		if (read == 0)
+
+		if (bool ok = read_bytes(&size, sizeof(size), timeout_ms); ok == false)
 			return Json{};
-		assert(read == sizeof(size));
 
 		std::string msg(size, '\0');
-		read = ::recv(this->handle, msg.data(), size, 0);
-		assert(read == size);
+		if (bool ok = read_bytes(msg.data(), size, timeout_ms); ok == false)
+			return Json{};
 
 		return Json::parse(msg);
 	}
@@ -107,10 +137,12 @@ namespace sws::tcp
 	}
 
 	Connection
-	Server::accept(uint32_t timeout_ms) const
+	Server::accept(int timeout_ms) const
 	{
 		pollfd pfd_accept = {.fd = this->handle, .events = POLLIN};
-		if (int ready = ::poll(&pfd_accept, 1, timeout_ms); ready == 0)
+		if (int ready = ::poll(&pfd_accept, 1, timeout_ms); ready < 0)
+			assert(false && "poll failed");
+		else if (ready == 0)
 			return Connection{-1};
 
 		int client_handle = ::accept(this->handle, nullptr, nullptr);

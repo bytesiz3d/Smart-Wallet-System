@@ -4,10 +4,19 @@
 using Json = nlohmann::json;
 namespace sws::tcp
 {
+	constexpr int TIMEOUT_INFINITE = -1;
+	constexpr int TIMEOUT_INSTANT = 0;
+
 	class Connection
 	{
 	protected:
 		int handle;
+
+		bool
+		read_bytes(void *data, size_t size, int timeout_ms) const;
+
+		bool
+		write_bytes(void *data, size_t size) const;
 
 	public:
 		Connection(int _handle);
@@ -23,7 +32,7 @@ namespace sws::tcp
 		send_message(const Json &json) const;
 
 		Json
-		receive_message() const;
+		receive_message(int timeout_ms) const;
 	};
 
 	class Client : public Connection
@@ -43,6 +52,6 @@ namespace sws::tcp
 		~Server();
 
 		Connection
-		accept(uint32_t timeout_ms = UINT32_MAX) const;
+		accept(int timeout_ms = TIMEOUT_INFINITE) const; // infinite by default
 	};
 }

@@ -8,7 +8,10 @@ namespace sws
 	Client::send_request(std::shared_ptr<tcp::Client> client, Json json)
 	{
 		client->send_message(json);
-		auto res_json = client->receive_message();
+		auto res_json = client->receive_message(500); // timeout = 500 ms
+		if (res_json.empty())
+			return std::make_unique<Response_Timeout>();
+
 		return IResponse::deserialize_base(res_json);
 	}
 
