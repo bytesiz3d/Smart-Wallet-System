@@ -70,18 +70,16 @@ namespace sws
 		return std::make_unique<Response_Deposit>(err);
 	}
 
-	void
+	Error
 	Command_Deposit::undo(Server *server)
 	{
-		auto err = server->withdraw(client_id, deposit.amount);
-		assert(err == false);
+		return server->withdraw(client_id, deposit.amount);
 	}
 
-	void
+	Error
 	Command_Deposit::redo(Server *server)
 	{
-		auto err = server->deposit(client_id, deposit.amount);
-		assert(err == false);
+		return server->deposit(client_id, deposit.amount);
 	}
 
 	std::string
@@ -147,18 +145,16 @@ namespace sws
 		return std::make_unique<Response_Withdrawal>(err);
 	}
 
-	void
+	Error
 	Command_Withdrawal::undo(Server *server)
 	{
-		auto err = server->deposit(client_id, withdrawal.amount);
-		assert(err == false);
+		return server->deposit(client_id, withdrawal.amount);
 	}
 
-	void
+	Error
 	Command_Withdrawal::redo(Server *server)
 	{
-		auto err = server->withdraw(client_id, withdrawal.amount);
-		assert(err == false);
+		return server->withdraw(client_id, withdrawal.amount);
 	}
 
 	std::string

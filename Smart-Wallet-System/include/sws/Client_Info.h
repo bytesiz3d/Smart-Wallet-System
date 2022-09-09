@@ -54,10 +54,10 @@ namespace sws
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
 
-		void
+		Error
 		undo(Server *server) override;
 
-		void
+		Error
 		redo(Server *server) override;
 
 		std::string

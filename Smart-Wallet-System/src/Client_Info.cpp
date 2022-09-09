@@ -96,20 +96,18 @@ namespace sws
 		return std::make_unique<Response_Update_Info>(err);
 	}
 
-	void
+	Error
 	Command_Update_Info::undo(Server *server)
 	{
 		auto [_, err] = server->update_info(client_id, old_info);
-		if (err)
-			Log::error("{}", err);
+		return err;
 	}
 
-	void
+	Error
 	Command_Update_Info::redo(Server *server)
 	{
 		auto [_, err] = server->update_info(client_id, new_info);
-		if (err)
-			Log::error("{}", err);
+		return err;
 	}
 
 	std::string

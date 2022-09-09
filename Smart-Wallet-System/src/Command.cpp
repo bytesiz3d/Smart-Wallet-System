@@ -21,14 +21,16 @@ namespace sws
 	{
 	}
 
-	void
+	Error
 	IMetaCommand::undo(Server *)
 	{ // do nothing
+		 return Error{};
 	}
 
-	void
+	Error
 	IMetaCommand::redo(Server *)
 	{ // do nothing
+		return Error{};
 	}
 
 	bool
@@ -61,8 +63,7 @@ namespace sws
 		if (next_command == 0)
 			return Error{"Undoing with no commands left"};
 
-		commands[--next_command]->undo(server);
-		return Error{};
+		return commands[--next_command]->undo(server);
 	}
 
 	Error
@@ -71,8 +72,7 @@ namespace sws
 		if (next_command == commands.size())
 			return Error{"Redoing with no commands left"};
 
-		commands[next_command++]->redo(server);
-		return Error{};
+		return commands[next_command++]->redo(server);
 	}
 
 	std::vector<std::string>

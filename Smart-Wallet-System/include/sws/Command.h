@@ -20,10 +20,10 @@ namespace sws
 		virtual std::unique_ptr<IResponse>
 		execute(Server *) = 0;
 
-		virtual void
+		virtual Error
 		undo(Server *) = 0;
 
-		virtual void
+		virtual Error
 		redo(Server *) = 0;
 
 		virtual std::string
@@ -39,10 +39,10 @@ namespace sws
 		explicit IMetaCommand(id_t _client_id);
 
 	public:
-		void
+		virtual Error
 		undo(Server *) override final;
 
-		void
+		virtual Error
 		redo(Server *) override final;
 
 		bool
