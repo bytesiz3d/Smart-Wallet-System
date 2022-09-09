@@ -80,6 +80,9 @@ namespace sws
 
 		std::vector<std::string>
 		describe_commands();
+
+		void
+		load_commands(const std::vector<Json> &_commands);
 	};
 
 }

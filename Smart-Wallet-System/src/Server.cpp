@@ -65,11 +65,6 @@ namespace sws
 		return serving_thread.is_done();
 	}
 
-	Server::Client::Client(tcp::Connection &&con)
-		: data{}, session{std::move(con)}, log{}
-	{
-	}
-
 	Server::Server()
 		: listening_thread_connections{std::make_shared<Connection_Queue>()},
 		  listening_thread{listen_for_connections, listening_thread_connections}
@@ -81,7 +76,7 @@ namespace sws
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
-		auto &client = active_clients.at(client_id);
+		auto &client = registered_clients.at(client_id);
 
 		if (auto err = deposit.is_valid())
 			return err;
@@ -95,7 +90,7 @@ namespace sws
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
-		auto &client = active_clients.at(client_id);
+		auto &client = registered_clients.at(client_id);
 
 		if (auto err = withdrawal.is_valid())
 			return err;
@@ -112,7 +107,7 @@ namespace sws
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
-		auto &client = active_clients.at(client_id);
+		auto &client = registered_clients.at(client_id);
 
 		if (auto err = new_info.is_valid())
 			return Error{"Invalid info: {}", err};
@@ -128,9 +123,29 @@ namespace sws
 	{
 		if (active_clients.contains(client_id) == false)
 			return Error{"Client not found"};
-		auto &client = active_clients.at(client_id);
+		auto &client = registered_clients.at(client_id);
 
 		return client.data.balance;
+	}
+
+	Error
+	Server::undo(cid_t client_id)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = registered_clients.at(client_id);
+
+		return client.log.undo_prev_command(this);
+	}
+
+	Error
+	Server::redo(cid_t client_id)
+	{
+		if (active_clients.contains(client_id) == false)
+			return Error{"Client not found"};
+		auto &client = registered_clients.at(client_id);
+
+		return client.log.redo_next_command(this);
 	}
 
 	// -1 to start a new client
@@ -179,8 +194,15 @@ namespace sws
 
 		// New session is valid
 		auto client_id = res_id->get_id();
+
+		// Add to registered clients if needed
+		if (registered_clients.contains(client_id) == false)
+		{
+			registered_clients.emplace(client_id, Client{});
+			registered_clients.at(client_id).data.client_id = client_id;
+		}
+
 		active_clients.emplace(client_id, std::move(con));
-		active_clients.at(client_id).data.client_id = client_id;
 	}
 
 	std::shared_ptr<Server>
@@ -198,21 +220,24 @@ namespace sws
 			start_session(listening_thread_connections->pop());
 
 		std::vector<cid_t> clients_to_remove;
-		for (auto &[id, client] : active_clients)
+		for (auto &[id, session] : active_clients)
 		{
+			assert(registered_clients.contains(id));
+			auto &client = registered_clients.at(id);
+
 			// See if there's any requests
 			while (true)
 			{
-				auto req = client.session.receive_request();
+				auto req = session.receive_request();
 				if (req == nullptr)
 					break;
 
 				auto res = client.log.execute_new_command(this, req->command(id));
-				client.session.send_response(std::move(res));
+				session.send_response(std::move(res));
 			}
 
 			// See if there's any disconnects
-			if (client.session.client_disconnected())
+			if (session.client_disconnected())
 				clients_to_remove.push_back(id);
 		}
 
@@ -232,35 +257,14 @@ namespace sws
 	Client_Data_with_Logs
 	Server::client_data(cid_t client_id)
 	{
-		assert(active_clients.contains(client_id));
-
-		auto &client = active_clients.at(client_id);
+		assert(registered_clients.contains(client_id));
+		auto &client = registered_clients.at(client_id);
 
 		Client_Data_with_Logs data         = {};
 		*static_cast<Client_Data *>(&data) = client.data;
 		data.logs                          = client.log.describe_commands();
 
 		return data;
-	}
-
-	Error
-	Server::undo(cid_t client_id)
-	{
-		if (active_clients.contains(client_id) == false)
-			return Error{"Client not found"};
-		auto &client = active_clients.at(client_id);
-
-		return client.log.undo_prev_command(this);
-	}
-
-	Error
-	Server::redo(cid_t client_id)
-	{
-		if (active_clients.contains(client_id) == false)
-			return Error{"Client not found"};
-		auto &client = active_clients.at(client_id);
-
-		return client.log.redo_next_command(this);
 	}
 
 	void

@@ -145,5 +145,6 @@ namespace sws
 
 		old_info.deserialize(json["update_info"]["old_info"]);
 		new_info.deserialize(json["update_info"]["new_info"]);
+		return true;
 	}
 }

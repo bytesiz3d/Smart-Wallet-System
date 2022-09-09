@@ -66,13 +66,10 @@ namespace sws
 		struct Client
 		{
 			Client_Data data;
-			Session session;
 			Command_Log log;
-
-			Client() = delete;
-			explicit Client(tcp::Connection &&con);
 		};
-		std::unordered_map<cid_t, Client> active_clients;
+		std::unordered_map<cid_t, Session> active_clients;
+		std::unordered_map<cid_t, Client> registered_clients;
 
 		static void
 		listen_for_connections(std::shared_ptr<Connection_Queue> queue, std::shared_ptr<std::atomic_flag> should_exit);
@@ -97,9 +94,6 @@ namespace sws
 		Result<uint64_t>
 		query_balance(cid_t client_id);
 
-		Result<cid_t>
-		new_session_with_id(cid_t client_id);
-
 		Error
 		undo(cid_t client_id);
 
@@ -108,6 +102,9 @@ namespace sws
 
 		void
 		update_state();
+
+		Result<cid_t>
+		new_session_with_id(cid_t client_id);
 
 		std::vector<cid_t>
 		clients();

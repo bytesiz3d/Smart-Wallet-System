@@ -143,4 +143,15 @@ namespace sws
 
 		return descriptions;
 	}
+
+	void
+	Command_Log::load_commands(const std::vector<Json> &_commands)
+	{
+		for (auto &j : _commands)
+		{
+			auto com = ICommand::deserialize_base(j);
+			commands.push_back(std::move(com));
+		}
+		next_command = commands.size();
+	}
 }
