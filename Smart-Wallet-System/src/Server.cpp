@@ -7,7 +7,7 @@ namespace sws
 	{
 		while (should_exit->test() == false)
 		{
-			auto msg = con.receive_message(200);
+			auto msg = con.receive_message(400);
 			if (msg.empty())
 			{ // Ping client to see if they're online
 				if (con.ping() == false) return;

@@ -36,6 +36,9 @@ namespace sws::tcp
 
 		bool
 		ping() const;
+
+		bool
+		message_is_ping(const Json &json) const;
 	};
 
 	class Client : public Connection

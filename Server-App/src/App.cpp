@@ -56,10 +56,6 @@ namespace server
 		if (ImGui::Begin(CLIENTS_LIST_WINDOW_TITLE, nullptr, DOCKING_WINDOW_FLAGS) == false)
 			return;
 
-		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::Button("Clients", ImVec2{-FLT_MIN, 0.f});
-		ImGui::PopItemFlag();
-
 		bool active_client_found = false;
 		auto active_clients = server->clients();
 		for (auto id : active_clients)
@@ -95,9 +91,10 @@ namespace server
 		// TODO: Use an Observer/Detector
 		auto client_data = server->client_data(active_client_id);
 
-		float width = ImGui::GetContentRegionAvail().x;
-		if (ImGui::BeginChild("##Data", ImVec2{width/2, 0.f}, true))
+		// Vertical split
+		if (ImGui::BeginTable("##Client_Data_Logs", 2, ImGuiTableFlags_BordersInnerV))
 		{
+			ImGui::TableNextColumn();
 			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 			{
 				ImGui::InputScalar("Client ID", ImGuiDataType_U32, &client_data.client_id);
@@ -111,16 +108,16 @@ namespace server
 				ImGui::InputScalar("Balance", ImGuiDataType_U32, &client_data.balance);
 			}
 			ImGui::PopItemFlag();
-		}
-		ImGui::EndChild();
 
-		ImGui::SameLine();
+			ImGui::TableNextColumn();
+			if (ImGui::BeginChild("##Logs", ImVec2{}, false))
+			{
+				for (auto &log: client_data.logs)
+					ImGui::Text("> %s", log.c_str());
+			}
+			ImGui::EndChild();
 
-		if (ImGui::BeginChild("##Logs", ImVec2{}, true))
-		{
-			for (auto &log: client_data.logs)
-				ImGui::Text("> %s", log.c_str());
+			ImGui::EndTable();
 		}
-		ImGui::EndChild();
 	}
 }

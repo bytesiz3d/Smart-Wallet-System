@@ -15,7 +15,7 @@ namespace sws
 			if (res_json.empty())
 				return std::make_unique<Response_Timeout>();
 
-			if (res_json.contains("ping")) // Received ping from server
+			if (client->message_is_ping(res_json)) // Received ping from server
 				continue;
 
 			return IResponse::deserialize_base(res_json);

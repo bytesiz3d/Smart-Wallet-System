@@ -109,6 +109,14 @@ namespace sws::tcp
 		});
 	}
 
+	bool
+	Connection::message_is_ping(const Json &json) const
+	{
+		return json.size() == 1 &&
+			   json.contains("ping") &&
+			   json["ping"].get<bool>();
+	}
+
 	Client::Client()
 		: Connection(::socket(AF_INET, SOCK_STREAM, 0))
 	{
