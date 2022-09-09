@@ -7,10 +7,11 @@ namespace sws
 	{
 		while (should_exit->test() == false)
 		{
-			auto msg = con.receive_message(tcp::TIMEOUT_INFINITE);
+			auto msg = con.receive_message(200);
 			if (msg.empty())
-			{ // TODO: Add timeout and break only if client is disconnected
-				break;
+			{ // Ping client to see if they're online
+				if (con.ping() == false) return;
+				else continue;
 			}
 
 			auto req = IRequest::deserialize_base(msg);

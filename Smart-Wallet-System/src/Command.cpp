@@ -80,7 +80,11 @@ namespace sws
 	{
 		std::vector<std::string> descriptions(commands.size());
 		for (size_t i = 0; i < descriptions.size(); i++)
+		{
 			descriptions[i] = commands[i]->describe();
+			if (i == next_command-1)
+				descriptions[i] += " <- CURRENT COMMAND";
+		}
 
 		return descriptions;
 	}

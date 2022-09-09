@@ -115,20 +115,10 @@ namespace sws
 	std::string
 	Command_Update_Info::describe()
 	{
-		std::string description;
-
-		if (old_info.name != new_info.name)
-			description += fmt::format("name: {} -> {}", old_info.name, new_info.name);
-
-		if (old_info.age != new_info.age)
-			description += fmt::format(" age: {} -> {}", old_info.age, new_info.age);
-
-		if (strcmp(old_info.national_id, new_info.national_id) != 0)
-			description += fmt::format(" national_id: {} -> {}", old_info.national_id, new_info.national_id);
-
-		if (old_info.address != new_info.address)
-			description += fmt::format(" address: {} -> {}", old_info.address, new_info.address);
-
-		return description;
+		return fmt::format("Update info: {}{}{}{}",
+			old_info.name != new_info.name ? "name " : "",
+			old_info.age != new_info.age ? "age " : "",
+			strcmp(old_info.national_id, new_info.national_id) != 0 ? "national_id " : "",
+			old_info.address != new_info.address ? "address " : "");
 	}
 }

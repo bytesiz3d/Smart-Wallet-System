@@ -205,13 +205,13 @@ namespace sws
 	}
 
 	uint64_t
-	Response_Query_Balance::get_balance()
+	Response_Query_Balance::get_balance() const
 	{
 		return balance;
 	}
 
 	Command_Query_Balance::Command_Query_Balance(id_t client_id)
-		: ICommand{client_id}
+		: IMetaCommand{client_id}
 	{
 	}
 
@@ -220,16 +220,6 @@ namespace sws
 	{
 		auto [balance, err] = server->query_balance(client_id);
 		return std::make_unique<Response_Query_Balance>(err, balance);
-	}
-
-	void
-	Command_Query_Balance::undo(Server *server)
-	{ // Nothing to undo
-	}
-
-	void
-	Command_Query_Balance::redo(Server *server)
-	{ // Nothing to redo
 	}
 
 	std::string

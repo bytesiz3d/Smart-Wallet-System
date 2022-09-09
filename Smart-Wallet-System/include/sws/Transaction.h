@@ -126,22 +126,16 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		uint64_t
-		get_balance();
+		get_balance() const;
 	};
 
-	class Command_Query_Balance : public ICommand
+	class Command_Query_Balance : public IMetaCommand
 	{
 	public:
 		explicit Command_Query_Balance(id_t client_id);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
-
-		void
-		undo(Server *server) override;
-
-		void
-		redo(Server *server) override;
 
 		std::string
 		describe() override;

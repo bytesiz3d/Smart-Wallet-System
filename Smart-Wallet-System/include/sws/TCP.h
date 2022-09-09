@@ -28,11 +28,14 @@ namespace sws::tcp
 		bool
 		is_valid() const;
 
-		void
+		bool
 		send_message(const Json &json) const;
 
 		Json
 		receive_message(int timeout_ms) const;
+
+		bool
+		ping() const;
 	};
 
 	class Client : public Connection

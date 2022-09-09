@@ -96,14 +96,17 @@ namespace client
 			return;
 		}
 
-		static int amount = 0;
-		ImGui::InputInt("##Deposit", &amount, 10, 100);
+		static uint64_t amount = 0;
+		ImGui::InputScalar("Amount", ImGuiDataType_U64, &amount, nullptr, nullptr, nullptr, ImGuiInputTextFlags_CharsDecimal);
 
 		if (ImGui::Button("Deposit"))
 			wait_for_response(client.deposit(amount));
 
 		if (ImGui::SameLine(); ImGui::Button("Withdraw"))
 			wait_for_response(client.withdraw(amount));
+
+		if (ImGui::SameLine(); ImGui::Button("Query Balance"))
+			wait_for_response(client.query_balance());
 
 		ImGui::Separator();
 
@@ -112,7 +115,7 @@ namespace client
 		ImGui::InputText("Name", name, sizeof(name));
 
 		static uint8_t age = 0;
-		ImGui::InputScalar("Age", ImGuiDataType_U8, &age);
+		ImGui::InputScalar("Age", ImGuiDataType_U8, &age, nullptr, nullptr, nullptr, ImGuiInputTextFlags_CharsDecimal);
 
 		static char national_id[14 + 1] = {};
 		ImGui::InputText("National ID", national_id, sizeof(national_id), ImGuiInputTextFlags_CharsDecimal);

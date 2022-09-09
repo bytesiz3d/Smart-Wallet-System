@@ -16,7 +16,7 @@ namespace gui
 	Window::Window(const char *title, int width, int height)
 	{
 		// Setup SDL
-		int sdl_err = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
+		int sdl_err = SDL_Init(SDL_INIT_VIDEO);
 		assert(sdl_err == 0);
 
 		// GL 3.0 + GLSL 130

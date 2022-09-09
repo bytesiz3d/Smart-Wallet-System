@@ -75,23 +75,22 @@ namespace sws::tcp
 		return this->handle >= 0;
 	}
 
-	void
+	bool
 	Connection::send_message(const Json &json) const
 	{
 		std::string msg = json.dump();
 		size_t size     = msg.length();
 
 		if (bool ok = write_bytes(&size, sizeof(size)); ok == false)
-			return;
+			return false;
 
-		write_bytes(msg.data(), size);
+		return write_bytes(msg.data(), size);
 	}
 
 	Json
 	Connection::receive_message(int timeout_ms) const
 	{
 		size_t size = 0;
-
 		if (bool ok = read_bytes(&size, sizeof(size), timeout_ms); ok == false)
 			return Json{};
 
@@ -100,6 +99,14 @@ namespace sws::tcp
 			return Json{};
 
 		return Json::parse(msg);
+	}
+
+	bool
+	Connection::ping() const
+	{
+		return send_message({
+			{"ping", true}
+		});
 	}
 
 	Client::Client()
