@@ -1,3 +1,8 @@
+---
+author: Abdelrahman Farid
+email: abdelrahman.farid@gmail.com
+date: 2022-09-09
+---
 # "Smart Wallet System" Assignment
 Create a smart wallet system platform in C++ on Linux. Clients should be able to submit their info to the bank system and do transactions on their accounts.
 
