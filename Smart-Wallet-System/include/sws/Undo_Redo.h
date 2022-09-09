@@ -23,13 +23,11 @@ namespace sws
 	class Command_Undo : public IMetaCommand
 	{
 	public:
+		Command_Undo() = default; // uses deserialize
 		explicit Command_Undo(cid_t client_id);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
-
-		std::string
-		describe() override;
 	};
 
 	class Request_Redo : public IRequest
@@ -51,12 +49,10 @@ namespace sws
 	class Command_Redo : public IMetaCommand
 	{
 	public:
+		Command_Redo() = default; // uses deserialize
 		explicit Command_Redo(cid_t client_id);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
-
-		std::string
-		describe() override;
 	};
 }

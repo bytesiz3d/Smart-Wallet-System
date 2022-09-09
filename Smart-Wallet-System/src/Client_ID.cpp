@@ -23,11 +23,12 @@ namespace sws
 		return req;
 	}
 
-	void
+	bool
 	Request_ID::deserialize(const Json &json)
 	{
 		IMessage::deserialize(json);
 		id_to_set = json["request"]["id_to_set"];
+		return true;
 	}
 
 	std::unique_ptr<ICommand>
@@ -62,11 +63,12 @@ namespace sws
 		return res;
 	}
 
-	void
+	bool
 	Response_ID::deserialize(const Json &json)
 	{
 		IResponse::deserialize(json);
 		id_set = json["response"]["id_to_set"];
+		return true;
 	}
 
 	cid_t
@@ -85,11 +87,5 @@ namespace sws
 	{
 		auto [_id, err] = server->new_session_with_id(id_to_set);
 		return std::make_unique<Response_ID>(err, _id);
-	}
-
-	std::string
-	Command_ID::describe()
-	{
-		return "Set ID";
 	}
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include "sws/Base.h"
 #include <memory>
-#include <nlohmann/json.hpp>
 
 using Json = nlohmann::json;
 
@@ -31,7 +30,7 @@ namespace sws
 		serialize() const;
 
 		// Override only if additional data is added
-		virtual void
+		virtual bool
 		deserialize(const Json &json);
 
 	private:
@@ -63,7 +62,7 @@ namespace sws
 		virtual Json
 		serialize() const override; // add error
 
-		virtual void
+		virtual bool
 		deserialize(const Json &json) override; // add error
 
 		static std::unique_ptr<IResponse>

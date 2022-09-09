@@ -1,6 +1,12 @@
 #include "sws/Command.h"
 #include "sws/Message.h"
 #include "sws/Base.h"
+
+#include "sws/Transaction.h"
+#include "sws/Client_ID.h"
+#include "sws/Client_Info.h"
+#include "sws/Undo_Redo.h"
+
 #include "assert.h"
 
 namespace sws
@@ -10,10 +16,47 @@ namespace sws
 	{
 	}
 
+	std::unique_ptr<ICommand>
+	ICommand::deserialize_base(const Json &json)
+	{
+		std::unique_ptr<ICommand> com{nullptr};
+
+		if (Command_Deposit{}.deserialize(json))
+			com = std::make_unique<Command_Deposit>();
+
+		else if (Command_Withdrawal{}.deserialize(json))
+			com = std::make_unique<Command_Withdrawal>();
+
+		else if (Command_Query_Balance{}.deserialize(json))
+			com = std::make_unique<Command_Query_Balance>();
+
+		else if (Command_Update_Info{}.deserialize(json))
+			com = std::make_unique<Command_Update_Info>();
+
+		else if (Command_Undo{}.deserialize(json))
+			com = std::make_unique<Command_Undo>();
+
+		else if (Command_Redo{}.deserialize(json))
+			com = std::make_unique<Command_Redo>();
+
+		else if (Command_ID{}.deserialize(json))
+			com = std::make_unique<Command_ID>();
+
+		if (com != nullptr)
+			com->deserialize(json);
+
+		return com;
+	}
+
 	bool
 	ICommand::is_meta() const
 	{
 		return false;
+	}
+
+	IMetaCommand::IMetaCommand()
+		: ICommand{}
+	{
 	}
 
 	IMetaCommand::IMetaCommand(cid_t _client_id)
@@ -37,6 +80,18 @@ namespace sws
 	IMetaCommand::is_meta() const
 	{
 		return true;
+	}
+
+	Json
+	IMetaCommand::serialize()
+	{
+		return Json{{"meta", true}};
+	}
+
+	bool
+	IMetaCommand::deserialize(const Json &json)
+	{
+		return json.contains("meta") && json["meta"].get<bool>();
 	}
 
 	std::unique_ptr<IResponse>
@@ -81,7 +136,7 @@ namespace sws
 		std::vector<std::string> descriptions(commands.size());
 		for (size_t i = 0; i < descriptions.size(); i++)
 		{
-			descriptions[i] = commands[i]->describe();
+			descriptions[i] = commands[i]->serialize().dump();
 			if (i == next_command-1)
 				descriptions[i] += " <- CURRENT COMMAND";
 		}

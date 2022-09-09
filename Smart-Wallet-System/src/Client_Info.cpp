@@ -29,6 +29,29 @@ namespace sws
 		return Error{};
 	}
 
+	Json
+	Client_Info::serialize() const
+	{
+		return Json{
+			{"name", name},
+			{"age", age},
+			{"national_id", national_id},
+			{"address", address},
+		};
+	}
+
+	void
+	Client_Info::deserialize(const Json &json)
+	{
+		name = json["name"];
+		age  = json["age"];
+
+		std::string n_id = json["national_id"];
+		strcpy(national_id, n_id.c_str());
+
+		address = json["address"];
+	}
+
 	Request_Update_Info::Request_Update_Info()
 		: IRequest{KIND_UPDATE_INFO}
 	{
@@ -43,26 +66,16 @@ namespace sws
 	Request_Update_Info::serialize() const
 	{
 		auto req = IRequest::serialize();
-		req["request"] = {
-			{"name", client_info.name},
-			{"age", client_info.age},
-			{"national_id", client_info.national_id},
-			{"address", client_info.address},
-		};
+		req["request"] = client_info.serialize();
 		return req;
 	}
 
-	void
+	bool
 	Request_Update_Info::deserialize(const Json &json)
 	{
 		IRequest::deserialize(json);
-		client_info.name = json["request"]["name"];
-		client_info.age  = json["request"]["age"];
-
-		std::string n_id = json["request"]["national_id"];
-		strcpy(client_info.national_id, n_id.c_str());
-
-		client_info.address = json["request"]["address"];
+		client_info.deserialize(json["request"]);
+		return true;
 	}
 
 	std::unique_ptr<ICommand>
@@ -110,13 +123,27 @@ namespace sws
 		return err;
 	}
 
-	std::string
-	Command_Update_Info::describe()
+	Json
+	Command_Update_Info::serialize()
 	{
-		return fmt::format("Update info: {}{}{}{}",
-			old_info.name != new_info.name ? "name " : "",
-			old_info.age != new_info.age ? "age " : "",
-			strcmp(old_info.national_id, new_info.national_id) != 0 ? "national_id " : "",
-			old_info.address != new_info.address ? "address " : "");
+		return Json{
+			{"update_info", {
+				{"old_info", old_info.serialize()},
+				{"new_info", new_info.serialize()},
+			}}
+		};
+	}
+
+	bool
+	Command_Update_Info::deserialize(const Json &json)
+	{
+		if (json.size() > 1)
+			return false;
+
+		if (json.contains("update_info") == false)
+			return false;
+
+		old_info.deserialize(json["update_info"]["old_info"]);
+		new_info.deserialize(json["update_info"]["new_info"]);
 	}
 }

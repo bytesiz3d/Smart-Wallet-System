@@ -33,11 +33,12 @@ namespace sws
 		return req;
 	}
 
-	void
+	bool
 	Request_Deposit::deserialize(const Json &json)
 	{
 		IRequest::deserialize(json);
 		deposit.amount = json["request"]["amount"];
+		return true;
 	}
 
 	std::unique_ptr<ICommand>
@@ -83,10 +84,25 @@ namespace sws
 		return server->deposit(client_id, deposit);
 	}
 
-	std::string
-	Command_Deposit::describe()
+	Json
+	Command_Deposit::serialize()
 	{
-		return fmt::format("Deposit {}", deposit.amount);
+		return Json{
+			{"deposit", deposit.amount}
+		};
+	}
+
+	bool
+	Command_Deposit::deserialize(const Json &json)
+	{
+		if (json.size() != 1)
+			return false;
+
+		if (json.contains("deposit") == false)
+			return false;
+
+		deposit.amount = json["deposit"];
+		return true;
 	}
 
 	Request_Withdrawal::Request_Withdrawal()
@@ -108,11 +124,12 @@ namespace sws
 		return req;
 	}
 
-	void
+	bool
 	Request_Withdrawal::deserialize(const Json &json)
 	{
 		IRequest::deserialize(json);
 		withdrawal.amount = json["request"]["amount"];
+		return true;
 	}
 
 	std::unique_ptr<ICommand>
@@ -158,10 +175,25 @@ namespace sws
 		return server->withdraw(client_id, withdrawal);
 	}
 
-	std::string
-	Command_Withdrawal::describe()
+	Json
+	Command_Withdrawal::serialize()
 	{
-		return fmt::format("Withdrawal {}", withdrawal.amount);
+		return Json{
+			{"withdrawal", withdrawal.amount}
+		};
+	}
+
+	bool
+	Command_Withdrawal::deserialize(const Json &json)
+	{
+		if (json.size() != 1)
+			return false;
+
+		if (json.contains("withdrawal") == false)
+			return false;
+
+		withdrawal.amount = json["withdrawal"];
+		return true;
 	}
 
 	Request_Query_Balance::Request_Query_Balance()
@@ -194,11 +226,12 @@ namespace sws
 		return res;
 	}
 
-	void
+	bool
 	Response_Query_Balance::deserialize(const Json &json)
 	{
 		IResponse::deserialize(json);
 		balance = json["response"]["balance"];
+		return true;
 	}
 
 	uint64_t
@@ -217,11 +250,5 @@ namespace sws
 	{
 		auto [balance, err] = server->query_balance(client_id);
 		return std::make_unique<Response_Query_Balance>(err, balance);
-	}
-
-	std::string
-	Command_Query_Balance::describe()
-	{
-		return "Query Balance";
 	}
 }

@@ -17,10 +17,11 @@ namespace sws
 		};
 	}
 
-	void
+	bool
 	IMessage::deserialize(const Json &json)
 	{
 		kind = json["kind"];
+		return true;
 	}
 
 	IRequest::IRequest(IMessage::KIND _kind) : IMessage{_kind}
@@ -87,11 +88,12 @@ namespace sws
 		return res;
 	}
 
-	void
+	bool
 	IResponse::deserialize(const Json &json)
 	{
 		IMessage::deserialize(json);
 		error.msg = json["error"];
+		return true;
 	}
 
 	std::unique_ptr<IResponse>

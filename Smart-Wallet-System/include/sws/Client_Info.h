@@ -17,6 +17,12 @@ namespace sws
 
 		Error
 		is_valid() const;
+
+		Json
+		serialize() const;
+
+		void
+		deserialize(const Json &json);
 	};
 
 	class Request_Update_Info : public IRequest
@@ -25,12 +31,12 @@ namespace sws
 
 	public:
 		Request_Update_Info(); // uses deserialize for initialization
-		Request_Update_Info(Client_Info _client_info);
+		explicit Request_Update_Info(Client_Info _client_info);
 
 		Json
 		serialize() const override;
 
-		void
+		bool
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
@@ -41,7 +47,7 @@ namespace sws
 	{
 	public:
 		Response_Update_Info(); // uses deserialize
-		Response_Update_Info(Error _error);
+		explicit Response_Update_Info(Error _error);
 	};
 
 	class Server;
@@ -49,6 +55,7 @@ namespace sws
 	{
 		Client_Info old_info, new_info;
 	public:
+		Command_Update_Info() = default;
 		explicit Command_Update_Info(cid_t client_id, Client_Info _new_info);
 
 		std::unique_ptr<IResponse>
@@ -60,7 +67,10 @@ namespace sws
 		Error
 		redo(Server *server) override;
 
-		std::string
-		describe() override;
+		Json
+		serialize() override;
+
+		bool
+		deserialize(const Json &json) override;
 	};
 }

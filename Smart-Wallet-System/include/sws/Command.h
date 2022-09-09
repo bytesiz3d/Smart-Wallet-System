@@ -12,9 +12,10 @@ namespace sws
 	class ICommand
 	{
 	protected:
-		explicit ICommand(cid_t _client_id);
+		cid_t client_id{};
 
-		cid_t client_id;
+		ICommand() = default;
+		explicit ICommand(cid_t _client_id);
 
 	public:
 		virtual std::unique_ptr<IResponse>
@@ -26,8 +27,14 @@ namespace sws
 		virtual Error
 		redo(Server *) = 0;
 
-		virtual std::string
-		describe() = 0;
+		virtual Json
+		serialize() = 0;
+
+		virtual bool
+		deserialize(const Json &json) = 0;
+
+		static std::unique_ptr<ICommand>
+		deserialize_base(const Json &json);
 
 		virtual bool
 		is_meta() const;
@@ -36,14 +43,21 @@ namespace sws
 	class IMetaCommand : public ICommand
 	{
 	protected:
+		IMetaCommand();
 		explicit IMetaCommand(cid_t _client_id);
 
 	public:
-		virtual Error
-		undo(Server *) override final;
+		Error
+		undo(Server *) final;
 
-		virtual Error
-		redo(Server *) override final;
+		Error
+		redo(Server *) final;
+
+		Json
+		serialize() final;
+
+		bool
+		deserialize(const Json &json) final;
 
 		bool
 		is_meta() const override final;

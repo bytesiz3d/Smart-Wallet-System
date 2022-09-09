@@ -36,12 +36,6 @@ namespace sws
 		return std::make_unique<Response_Undo>(err);
 	}
 
-	std::string
-	Command_Undo::describe()
-	{
-		return "Undo";
-	}
-
 	Request_Redo::Request_Redo()
 		: IRequest{KIND_REDO}
 	{
@@ -73,11 +67,5 @@ namespace sws
 	{
 		auto err = server->redo(client_id);
 		return std::make_unique<Response_Redo>(err);
-	}
-
-	std::string
-	Command_Redo::describe()
-	{
-		return "Redo";
 	}
 }

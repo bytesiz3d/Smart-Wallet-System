@@ -13,6 +13,9 @@
 #include <type_traits>
 #include <utility>
 
+#include <nlohmann/json.hpp>
+using Json = nlohmann::json;
+
 namespace sws
 {
 	using cid_t = int32_t;

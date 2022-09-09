@@ -9,7 +9,7 @@ namespace sws
 {
 	struct Transaction
 	{
-		int64_t amount;
+		int64_t amount{};
 
 		Error
 		is_valid() const;
@@ -26,7 +26,7 @@ namespace sws
 		Json
 		serialize() const override;
 
-		void
+		bool
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
@@ -44,6 +44,7 @@ namespace sws
 	{
 		Transaction deposit;
 	public:
+		Command_Deposit() = default;
 		Command_Deposit(cid_t client_id, Transaction _deposit);
 
 		std::unique_ptr<IResponse>
@@ -55,8 +56,11 @@ namespace sws
 		Error
 		redo(Server *server) override;
 
-		std::string
-		describe() override;
+		Json
+		serialize() override;
+
+		bool
+		deserialize(const Json &json) override;
 	};
 
 	class Request_Withdrawal : public IRequest
@@ -65,12 +69,12 @@ namespace sws
 
 	public:
 		Request_Withdrawal(); // uses deserialize
-		Request_Withdrawal(Transaction _withdrawal);
+		explicit Request_Withdrawal(Transaction _withdrawal);
 
 		Json
 		serialize() const override;
 
-		void
+		bool
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
@@ -81,13 +85,14 @@ namespace sws
 	{
 	public:
 		Response_Withdrawal(); // uses deserialize
-		Response_Withdrawal(Error _error);
+		explicit Response_Withdrawal(Error _error);
 	};
 
 	class Command_Withdrawal : public ICommand
 	{
 		Transaction withdrawal;
 	public:
+		Command_Withdrawal() = default;
 		Command_Withdrawal(cid_t client_id, Transaction _withdrawal);
 
 		std::unique_ptr<IResponse>
@@ -99,8 +104,11 @@ namespace sws
 		Error
 		redo(Server *server) override;
 
-		std::string
-		describe() override;
+		Json
+		serialize() override;
+
+		bool
+		deserialize(const Json &json) override;
 	};
 
 	class Request_Query_Balance : public IRequest
@@ -122,7 +130,7 @@ namespace sws
 		Json
 		serialize() const override;
 
-		void
+		bool
 		deserialize(const Json &json) override;
 
 		uint64_t
@@ -132,12 +140,10 @@ namespace sws
 	class Command_Query_Balance : public IMetaCommand
 	{
 	public:
+		Command_Query_Balance() = default;
 		explicit Command_Query_Balance(cid_t client_id);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
-
-		std::string
-		describe() override;
 	};
 }

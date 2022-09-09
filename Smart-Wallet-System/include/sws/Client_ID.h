@@ -15,7 +15,7 @@ namespace sws
 		Json
 		serialize() const override;
 
-		void
+		bool
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
@@ -35,7 +35,7 @@ namespace sws
 		Json
 		serialize() const override;
 
-		void
+		bool
 		deserialize(const Json &json) override;
 
 		cid_t
@@ -46,12 +46,10 @@ namespace sws
 	{
 		cid_t id_to_set;
 	public:
+		Command_ID() = default;
 		explicit Command_ID(cid_t _id_to_set);
 
 		std::unique_ptr<IResponse>
 		execute(Server *server) override;
-
-		std::string
-		describe() override;
 	};
 }
