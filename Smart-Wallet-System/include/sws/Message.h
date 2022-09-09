@@ -48,7 +48,7 @@ namespace sws
 
 		// Force override
 		virtual std::unique_ptr<ICommand>
-		command(cid_t client_id) = 0;
+		command() = 0;
 	};
 
 	class IResponse : public IMessage

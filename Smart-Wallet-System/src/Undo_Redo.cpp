@@ -9,9 +9,9 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Undo::command(cid_t client_id)
+	Request_Undo::command()
 	{
-		return std::make_unique<Command_Undo>(client_id);
+		return std::make_unique<Command_Undo>();
 	}
 
 	Response_Undo::Response_Undo()
@@ -24,13 +24,9 @@ namespace sws
 	{
 	}
 
-	Command_Undo::Command_Undo(cid_t client_id)
-		: IMetaCommand(client_id)
-	{
-	}
 
 	std::unique_ptr<IResponse>
-	Command_Undo::execute(Server *server)
+	Command_Undo::execute(Server *server, cid_t client_id)
 	{
 		auto err = server->undo(client_id);
 		return std::make_unique<Response_Undo>(err);
@@ -42,9 +38,9 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Redo::command(cid_t client_id)
+	Request_Redo::command()
 	{
-		return std::make_unique<Command_Redo>(client_id);
+		return std::make_unique<Command_Redo>();
 	}
 
 	Response_Redo::Response_Redo()
@@ -57,13 +53,8 @@ namespace sws
 	{
 	}
 
-	Command_Redo::Command_Redo(cid_t client_id)
-		: IMetaCommand(client_id)
-	{
-	}
-
 	std::unique_ptr<IResponse>
-	Command_Redo::execute(Server *server)
+	Command_Redo::execute(Server *server, cid_t client_id)
 	{
 		auto err = server->redo(client_id);
 		return std::make_unique<Response_Redo>(err);

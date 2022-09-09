@@ -10,7 +10,7 @@ namespace sws
 		Request_Undo();
 
 		std::unique_ptr<ICommand>
-		command(cid_t client_id) override;
+		command() override;
 	};
 
 	class Response_Undo : public IResponse
@@ -24,10 +24,9 @@ namespace sws
 	{
 	public:
 		Command_Undo() = default; // uses deserialize
-		explicit Command_Undo(cid_t client_id);
 
 		std::unique_ptr<IResponse>
-		execute(Server *server) override;
+		execute(Server *server, cid_t client_id) override;
 	};
 
 	class Request_Redo : public IRequest
@@ -36,7 +35,7 @@ namespace sws
 		Request_Redo();
 
 		std::unique_ptr<ICommand>
-		command(cid_t client_id) override;
+		command() override;
 	};
 
 	class Response_Redo : public IResponse
@@ -50,9 +49,8 @@ namespace sws
 	{
 	public:
 		Command_Redo() = default; // uses deserialize
-		explicit Command_Redo(cid_t client_id);
 
 		std::unique_ptr<IResponse>
-		execute(Server *server) override;
+		execute(Server *server, cid_t client_id) override;
 	};
 }

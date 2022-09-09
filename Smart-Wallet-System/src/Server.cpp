@@ -145,7 +145,7 @@ namespace sws
 			return Error{"Client not found"};
 		auto &client = registered_clients.at(client_id);
 
-		return client.log.undo_prev_command(this);
+		return client.log.undo_prev_command(this, client_id);
 	}
 
 	Error
@@ -155,7 +155,7 @@ namespace sws
 			return Error{"Client not found"};
 		auto &client = registered_clients.at(client_id);
 
-		return client.log.redo_next_command(this);
+		return client.log.redo_next_command(this, client_id);
 	}
 
 	// -1 to start a new client
@@ -193,8 +193,11 @@ namespace sws
 			return;
 
 		auto req = IRequest::deserialize_base(msg);
-		auto res = req->command(-1)->execute(this);
+		auto req_id = dynamic_cast<Request_ID *>(req.get());
+		if (req_id == nullptr)
+			return;
 
+		auto res = req_id->command()->execute(this, -1); // use a dummy caller client id
 		auto res_id = dynamic_cast<Response_ID *>(res.get());
 		if (res_id == nullptr)
 			return;
@@ -244,7 +247,7 @@ namespace sws
 				if (req == nullptr)
 					break;
 
-				auto res = client.log.execute_new_command(this, req->command(id));
+				auto res = client.log.execute_new_command(this, id, req->command());
 				session.send_response(std::move(res));
 			}
 
@@ -257,12 +260,13 @@ namespace sws
 			active_clients.erase(id);
 	}
 
-	std::vector<cid_t>
+	std::vector<std::pair<cid_t, bool>>
 	Server::clients()
 	{
-		std::vector<cid_t> ids;
-		for (auto &[id, client] : active_clients)
-			ids.push_back(id);
+		std::vector<std::pair<cid_t, bool>> ids;
+		for (auto &[id, client] : registered_clients)
+			ids.emplace_back(id, active_clients.contains(id));
+
 		return ids;
 	}
 

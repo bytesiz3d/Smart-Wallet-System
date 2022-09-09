@@ -118,7 +118,7 @@ namespace sws
 		Result<cid_t>
 		new_session_with_id(cid_t client_id);
 
-		std::vector<cid_t>
+		std::vector<std::pair<cid_t, bool>>
 		clients();
 
 		Client_Data_with_Logs

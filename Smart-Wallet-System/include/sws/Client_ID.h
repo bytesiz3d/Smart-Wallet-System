@@ -10,7 +10,7 @@ namespace sws
 		cid_t id_to_set;
 	public:
 		Request_ID(); // uses deserialize for initialization
-		Request_ID(cid_t _id_to_set);
+		explicit Request_ID(cid_t _id_to_set);
 
 		Json
 		serialize() const override;
@@ -19,7 +19,7 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command(cid_t client_id) override;
+		command() override;
 
 		cid_t
 		get_id() const;
@@ -50,6 +50,6 @@ namespace sws
 		explicit Command_ID(cid_t _id_to_set);
 
 		std::unique_ptr<IResponse>
-		execute(Server *server) override;
+		execute(Server *server, cid_t) override;
 	};
 }

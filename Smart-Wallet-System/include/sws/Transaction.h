@@ -21,7 +21,7 @@ namespace sws
 
 	public:
 		Request_Deposit(); // uses deserialize for initialization
-		Request_Deposit(Transaction _deposit);
+		explicit Request_Deposit(Transaction _deposit);
 
 		Json
 		serialize() const override;
@@ -30,14 +30,14 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command(cid_t client_id) override;
+		command() override;
 	};
 
 	class Response_Deposit : public IResponse
 	{
 	public:
 		Response_Deposit(); // uses deserialize
-		Response_Deposit(Error _error);
+		explicit Response_Deposit(Error _error);
 	};
 
 	class Command_Deposit : public ICommand
@@ -45,16 +45,16 @@ namespace sws
 		Transaction deposit;
 	public:
 		Command_Deposit() = default;
-		Command_Deposit(cid_t client_id, Transaction _deposit);
+		explicit Command_Deposit(Transaction _deposit);
 
 		std::unique_ptr<IResponse>
-		execute(Server *server) override;
+		execute(Server *server, cid_t client_id) override;
 
 		Error
-		undo(Server *server) override;
+		undo(Server *server, cid_t client_id) override;
 
 		Error
-		redo(Server *server) override;
+		redo(Server *server, cid_t client_id) override;
 
 		Json
 		serialize() override;
@@ -78,7 +78,7 @@ namespace sws
 		deserialize(const Json &json) override;
 
 		std::unique_ptr<ICommand>
-		command(cid_t client_id) override;
+		command() override;
 	};
 
 	class Response_Withdrawal : public IResponse
@@ -93,16 +93,16 @@ namespace sws
 		Transaction withdrawal;
 	public:
 		Command_Withdrawal() = default;
-		Command_Withdrawal(cid_t client_id, Transaction _withdrawal);
+		explicit Command_Withdrawal(Transaction _withdrawal);
 
 		std::unique_ptr<IResponse>
-		execute(Server *server) override;
+		execute(Server *server, cid_t client_id) override;
 
 		Error
-		undo(Server *server) override;
+		undo(Server *server, cid_t client_id) override;
 
 		Error
-		redo(Server *server) override;
+		redo(Server *server, cid_t client_id) override;
 
 		Json
 		serialize() override;
@@ -117,7 +117,7 @@ namespace sws
 		Request_Query_Balance();
 
 		std::unique_ptr<ICommand>
-		command(cid_t client_id) override;
+		command() override;
 	};
 
 	class Response_Query_Balance : public IResponse
@@ -141,9 +141,8 @@ namespace sws
 	{
 	public:
 		Command_Query_Balance() = default;
-		explicit Command_Query_Balance(cid_t client_id);
 
 		std::unique_ptr<IResponse>
-		execute(Server *server) override;
+		execute(Server *server, cid_t client_id) override;
 	};
 }

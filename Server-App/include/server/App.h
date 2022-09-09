@@ -11,7 +11,7 @@ namespace server
 	class App : public gui::IApp
 	{
 		bool should_exit;
-		sws::cid_t active_client_id;
+		sws::cid_t selected_client_id;
 		std::shared_ptr<sws::Server> server;
 
 		constexpr static auto CLIENTS_LIST_WINDOW_TITLE = "Clients";

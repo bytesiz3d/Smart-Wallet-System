@@ -8,7 +8,7 @@
 namespace server
 {
 	App::App()
-		: server{sws::Server::instance()}, should_exit{false}, active_client_id{-1}
+		: server{sws::Server::instance()}, should_exit{false}, selected_client_id{-1}
 	{
 	}
 
@@ -59,20 +59,26 @@ namespace server
 		if (ImGui::Begin(CLIENTS_LIST_WINDOW_TITLE, nullptr, DOCKING_WINDOW_FLAGS) == false)
 			return;
 
-		bool active_client_found = false;
-		auto active_clients = server->clients();
-		for (auto id : active_clients)
+		bool selected_client_found = false;
+		auto registered_clients = server->clients();
+		for (auto [id, active] : registered_clients)
 		{
 			auto label = fmt::format("Client #{}", id);
-			if (ImGui::Selectable(label.c_str(), id == active_client_id))
-				active_client_id = id;
 
-			if (id == active_client_id)
-				active_client_found = true;
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::RadioButton("##", active);
+			ImGui::PopItemFlag();
+			ImGui::SameLine();
+
+			if (ImGui::Selectable(label.c_str(), id == selected_client_id))
+				selected_client_id = id;
+
+			if (id == selected_client_id)
+				selected_client_found = true;
 		}
 
-		if (active_client_found == false)
-			active_client_id = active_clients.empty() ? -1 : active_clients[0];
+		if (selected_client_found == false)
+			selected_client_id = registered_clients.empty() ? -1 : registered_clients[0].first;
 	}
 
 	void
@@ -85,14 +91,14 @@ namespace server
 		if (ImGui::Begin(CLIENT_DATA_WINDOW_TITLE, nullptr, DOCKING_WINDOW_FLAGS) == false)
 			return;
 
-		if (active_client_id == -1)
+		if (selected_client_id == -1)
 		{
 			ImGui::Text("No client selected");
 			return;
 		}
 
 		// TODO: Use an Observer/Detector
-		auto client_data = server->client_data(active_client_id);
+		auto client_data = server->client_data(selected_client_id);
 
 		// Vertical split
 		if (ImGui::BeginTable("##Client_Data_Logs", 2, ImGuiTableFlags_BordersInnerV))

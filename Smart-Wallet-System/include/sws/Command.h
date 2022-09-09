@@ -12,20 +12,17 @@ namespace sws
 	class ICommand
 	{
 	protected:
-		cid_t client_id{};
-
 		ICommand() = default;
-		explicit ICommand(cid_t _client_id);
 
 	public:
 		virtual std::unique_ptr<IResponse>
-		execute(Server *) = 0;
+		execute(Server *, cid_t) = 0;
 
 		virtual Error
-		undo(Server *) = 0;
+		undo(Server *, cid_t) = 0;
 
 		virtual Error
-		redo(Server *) = 0;
+		redo(Server *, cid_t) = 0;
 
 		virtual Json
 		serialize() = 0;
@@ -43,15 +40,14 @@ namespace sws
 	class IMetaCommand : public ICommand
 	{
 	protected:
-		IMetaCommand();
-		explicit IMetaCommand(cid_t _client_id);
+		IMetaCommand() = default;
 
 	public:
 		Error
-		undo(Server *) final;
+		undo(Server *, cid_t) final;
 
 		Error
-		redo(Server *) final;
+		redo(Server *, cid_t) final;
 
 		Json
 		serialize() final;
@@ -70,13 +66,13 @@ namespace sws
 
 	public:
 		std::unique_ptr<IResponse>
-		execute_new_command(Server *server, std::unique_ptr<ICommand> &&command);
+		execute_new_command(Server *server, cid_t client_id, std::unique_ptr<ICommand> &&command);
 
 		Error
-		undo_prev_command(Server *server);
+		undo_prev_command(Server *server, cid_t client_id);
 
 		Error
-		redo_next_command(Server *server);
+		redo_next_command(Server *server, cid_t client_id);
 
 		std::vector<std::string>
 		describe_commands();

@@ -11,11 +11,6 @@
 
 namespace sws
 {
-	ICommand::ICommand(cid_t _client_id)
-		: client_id{_client_id}
-	{
-	}
-
 	std::unique_ptr<ICommand>
 	ICommand::deserialize_base(const Json &json)
 	{
@@ -54,24 +49,14 @@ namespace sws
 		return false;
 	}
 
-	IMetaCommand::IMetaCommand()
-		: ICommand{}
-	{
-	}
-
-	IMetaCommand::IMetaCommand(cid_t _client_id)
-		: ICommand{_client_id}
-	{
-	}
-
 	Error
-	IMetaCommand::undo(Server *)
+	IMetaCommand::undo(Server *, cid_t)
 	{ // do nothing
 		 return Error{};
 	}
 
 	Error
-	IMetaCommand::redo(Server *)
+	IMetaCommand::redo(Server *, cid_t)
 	{ // do nothing
 		return Error{};
 	}
@@ -95,10 +80,10 @@ namespace sws
 	}
 
 	std::unique_ptr<IResponse>
-	Command_Log::execute_new_command(Server *server, std::unique_ptr<ICommand> &&command)
+	Command_Log::execute_new_command(Server *server, cid_t client_id, std::unique_ptr<ICommand> &&command)
 	{
 		// Execute command
-		auto res = command->execute(server);
+		auto res = command->execute(server, client_id);
 
 		if (res->error == false && command->is_meta() == false)
 		{
@@ -113,21 +98,21 @@ namespace sws
 	}
 
 	Error
-	Command_Log::undo_prev_command(Server *server)
+	Command_Log::undo_prev_command(Server *server, cid_t client_id)
 	{
 		if (next_command == 0)
 			return Error{"Undoing with no commands left"};
 
-		return commands[--next_command]->undo(server);
+		return commands[--next_command]->undo(server, client_id);
 	}
 
 	Error
-	Command_Log::redo_next_command(Server *server)
+	Command_Log::redo_next_command(Server *server, cid_t client_id)
 	{
 		if (next_command == commands.size())
 			return Error{"Redoing with no commands left"};
 
-		return commands[next_command++]->redo(server);
+		return commands[next_command++]->redo(server, client_id);
 	}
 
 	std::vector<std::string>

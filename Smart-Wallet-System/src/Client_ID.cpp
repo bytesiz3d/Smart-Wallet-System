@@ -32,7 +32,7 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_ID::command(cid_t client_id)
+	Request_ID::command()
 	{
 		// Dummy id
 		return std::make_unique<Command_ID>(id_to_set);
@@ -78,12 +78,12 @@ namespace sws
 	}
 
 	Command_ID::Command_ID(cid_t _id_to_set)
-		: IMetaCommand{-1}, id_to_set{_id_to_set} // dummy ID
+		: id_to_set{_id_to_set} // dummy ID
 	{
 	}
 
 	std::unique_ptr<IResponse>
-	Command_ID::execute(Server *server)
+	Command_ID::execute(Server *server, cid_t)
 	{
 		auto [_id, err] = server->new_session_with_id(id_to_set);
 		return std::make_unique<Response_ID>(err, _id);

@@ -42,9 +42,9 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Deposit::command(cid_t client_id)
+	Request_Deposit::command()
 	{
-		return std::make_unique<Command_Deposit>(client_id, deposit);
+		return std::make_unique<Command_Deposit>(deposit);
 	}
 
 	Response_Deposit::Response_Deposit()
@@ -57,13 +57,13 @@ namespace sws
 	{
 	}
 
-	Command_Deposit::Command_Deposit(cid_t client_id, Transaction _deposit)
-		: ICommand(client_id), deposit{_deposit}
+	Command_Deposit::Command_Deposit(Transaction _deposit)
+		: deposit{_deposit}
 	{
 	}
 
 	std::unique_ptr<IResponse>
-	Command_Deposit::execute(Server *server)
+	Command_Deposit::execute(Server *server, cid_t client_id)
 	{
 		if (auto err = deposit.is_valid())
 			return std::make_unique<Response_Deposit>(err);
@@ -73,13 +73,13 @@ namespace sws
 	}
 
 	Error
-	Command_Deposit::undo(Server *server)
+	Command_Deposit::undo(Server *server, cid_t client_id)
 	{
 		return server->withdraw(client_id, deposit);
 	}
 
 	Error
-	Command_Deposit::redo(Server *server)
+	Command_Deposit::redo(Server *server, cid_t client_id)
 	{
 		return server->deposit(client_id, deposit);
 	}
@@ -133,9 +133,9 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Withdrawal::command(cid_t client_id)
+	Request_Withdrawal::command()
 	{
-		return std::make_unique<Command_Withdrawal>(client_id, withdrawal);
+		return std::make_unique<Command_Withdrawal>(withdrawal);
 	}
 
 	Response_Withdrawal::Response_Withdrawal()
@@ -148,13 +148,13 @@ namespace sws
 	{
 	}
 
-	Command_Withdrawal::Command_Withdrawal(cid_t client_id, Transaction _withdrawal)
-		: ICommand(client_id), withdrawal(_withdrawal)
+	Command_Withdrawal::Command_Withdrawal(Transaction _withdrawal)
+		: withdrawal(_withdrawal)
 	{
 	}
 
 	std::unique_ptr<IResponse>
-	Command_Withdrawal::execute(Server *server)
+	Command_Withdrawal::execute(Server *server, cid_t client_id)
 	{
 		if (auto err = withdrawal.is_valid())
 			return std::make_unique<Response_Withdrawal>(err);
@@ -164,13 +164,13 @@ namespace sws
 	}
 
 	Error
-	Command_Withdrawal::undo(Server *server)
+	Command_Withdrawal::undo(Server *server, cid_t client_id)
 	{
 		return server->deposit(client_id, withdrawal);
 	}
 
 	Error
-	Command_Withdrawal::redo(Server *server)
+	Command_Withdrawal::redo(Server *server, cid_t client_id)
 	{
 		return server->withdraw(client_id, withdrawal);
 	}
@@ -202,9 +202,9 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Query_Balance::command(cid_t client_id)
+	Request_Query_Balance::command()
 	{
-		return std::make_unique<Command_Query_Balance>(client_id);
+		return std::make_unique<Command_Query_Balance>();
 	}
 
 	Response_Query_Balance::Response_Query_Balance()
@@ -240,13 +240,8 @@ namespace sws
 		return balance;
 	}
 
-	Command_Query_Balance::Command_Query_Balance(cid_t client_id)
-		: IMetaCommand{client_id}
-	{
-	}
-
 	std::unique_ptr<IResponse>
-	Command_Query_Balance::execute(Server *server)
+	Command_Query_Balance::execute(Server *server, cid_t client_id)
 	{
 		auto [balance, err] = server->query_balance(client_id);
 		return std::make_unique<Response_Query_Balance>(err, balance);

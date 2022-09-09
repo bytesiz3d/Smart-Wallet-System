@@ -79,9 +79,9 @@ namespace sws
 	}
 
 	std::unique_ptr<ICommand>
-	Request_Update_Info::command(cid_t client_id)
+	Request_Update_Info::command()
 	{
-		return std::make_unique<Command_Update_Info>(client_id, client_info);
+		return std::make_unique<Command_Update_Info>(client_info);
 	}
 
 	Response_Update_Info::Response_Update_Info()
@@ -94,13 +94,13 @@ namespace sws
 	{
 	}
 
-	Command_Update_Info::Command_Update_Info(cid_t client_id, Client_Info _new_info)
-		: ICommand(client_id), new_info{std::move(_new_info)}
+	Command_Update_Info::Command_Update_Info(Client_Info _new_info)
+		: new_info{std::move(_new_info)}
 	{
 	}
 
 	std::unique_ptr<IResponse>
-	Command_Update_Info::execute(Server *server)
+	Command_Update_Info::execute(Server *server, cid_t client_id)
 	{
 		auto [old, err] = server->update_info(client_id, new_info);
 		if (err == false)
@@ -110,14 +110,14 @@ namespace sws
 	}
 
 	Error
-	Command_Update_Info::undo(Server *server)
+	Command_Update_Info::undo(Server *server, cid_t client_id)
 	{
 		auto [_, err] = server->update_info(client_id, old_info);
 		return err;
 	}
 
 	Error
-	Command_Update_Info::redo(Server *server)
+	Command_Update_Info::redo(Server *server, cid_t client_id)
 	{
 		auto [_, err] = server->update_info(client_id, new_info);
 		return err;
