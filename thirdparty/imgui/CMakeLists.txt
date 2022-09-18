@@ -17,4 +17,6 @@ target_sources(imgui
 		include/imgui_internal.h
 		include/imstb_rectpack.h
 		include/imstb_textedit.h
-		include/imstb_truetype.h)
+		include/imstb_truetype.h
+		include/implot.h
+		include/implot_internal.h)
